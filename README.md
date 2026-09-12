@@ -25,7 +25,7 @@ You do not install Node. You download **one file** from
 Then:
 
 1. Run that file. Windows: if it says *Windows protected your PC* → **More info** → **Run anyway**. Mac: right-click → **Open**.
-2. **Examples** → **Touch greeter** → **Copy**.
+2. **Tutorials** (start at Basic) or **Examples** → **Touch greeter** → **Copy**.
 3. In Second Life: right-click a prim → **Build** → **Content** → **New Script** → paste → **Save**.
 
 Full walkthrough: [packaging/GETTING_STARTED.txt](packaging/GETTING_STARTED.txt).
@@ -42,6 +42,7 @@ Not a full LSL IDE. The catalog is the events + the ll* calls you actually use f
 - **ll* catalog** — chat, looks, motion, sound, sensing, world, lists, math. Wiki link on every brick tooltip
 - **Type snaps** — integer will plug into a float socket, not the other way around. String + number needs a cast brick
 - **Warnings** — sensor range, chat bytes, timer faster than a sim frame, forced delays (IM 2s, dialog 1s, `llSetPos` 0.2s)
+- **Tutorials** — basic / intermediate / advanced / expert. Most of them load the matching bricks.
 - **Examples** — greeter, notecard greeter, two-state door, timer counter, owner commands, dialog, nearby sensor
 - **Notecards** — builder panel (`key = value`, `#` comments, 255-byte lines) + a read-notecard hat that emits the real dataserver / EOF / NAK / inventory-check / CHANGED_INVENTORY pattern
 - **localStorage** — workspace + script name + notecard survive a refresh. Nothing is uploaded

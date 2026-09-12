@@ -14,6 +14,6 @@ Pick **one** file. You do not need Git or Node.
 
 **Linux:** make it executable (`chmod +x PrimBlocks-linux.AppImage`) then double-click, or run it from a terminal.
 
-Then: **Examples → Touch greeter → Copy.** In Second Life: right-click a prim → Build → Content → New Script → paste → Save.
+Then: **Tutorials** (Basic → Hello, Avatar!) or **Examples → Touch greeter → Copy.** In Second Life: right-click a prim → Build → Content → New Script → paste → Save.
 
 Walkthrough: packaging/GETTING_STARTED.txt in the repo (also inside the Windows zip).

@@ -4,12 +4,14 @@ import {
   Braces,
   FileText,
   FolderOpen,
+  GraduationCap,
   Plus,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { CodePanel } from "@/components/code-panel";
 import { NotecardEditor } from "@/components/notecard-editor";
+import { TutorialDialog } from "@/components/tutorial-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -54,6 +56,7 @@ export function BlockEditor() {
   const [ready, setReady] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [examplesOpen, setExamplesOpen] = useState(false);
+  const [tutorialsOpen, setTutorialsOpen] = useState(false);
   const [notecardOpen, setNotecardOpen] = useState(false);
   const [notecard, setNotecard] = useState<NotecardDoc>(greeterNotecard);
   const [varOpen, setVarOpen] = useState(false);
@@ -211,6 +214,10 @@ export function BlockEditor() {
             <FolderOpen />
             <span className="hidden sm:inline">Examples</span>
           </Button>
+          <Button variant="ghost" size="sm" onClick={() => setTutorialsOpen(true)}>
+            <GraduationCap />
+            <span className="hidden sm:inline">Tutorials</span>
+          </Button>
           <Button variant="ghost" size="sm" onClick={() => setNotecardOpen(true)}>
             <FileText />
             <span className="hidden sm:inline">Notecard</span>
@@ -290,6 +297,7 @@ export function BlockEditor() {
             <DialogTitle>How PrimBlocks compiles</DialogTitle>
             <DialogDescription>
               Yellow hats are events. Snap commands under them. The panel on the right is real LSL.
+              New here? Open <strong>Tutorials</strong> in the header — basic through expert.
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[60vh] space-y-3 overflow-auto text-sm text-pretty">
@@ -381,6 +389,16 @@ export function BlockEditor() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <TutorialDialog
+        open={tutorialsOpen}
+        onOpenChange={setTutorialsOpen}
+        onLoadExample={(id) => {
+          loadExample(id);
+          setTutorialsOpen(false);
+        }}
+        onOpenNotecard={() => setNotecardOpen(true)}
+      />
 
       <NotecardEditor
         open={notecardOpen}

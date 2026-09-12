@@ -66,7 +66,10 @@ LINUX
 ONCE IT'S OPEN
 ==============
 
-  1. Examples → Touch greeter.
+  Tutorials in the header is the walkthrough. Basic → Intermediate →
+  Advanced → Expert. Each one can load the bricks for you.
+
+  1. Tutorials → Basic → Hello, Avatar! → Load these bricks.
   2. Copy.
   3. In Second Life: right-click a prim → Build → Content → New Script.
      Select all, paste, Save.
