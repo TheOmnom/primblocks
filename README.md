@@ -1,6 +1,6 @@
 # PrimBlocks
 
-Snap LSL together like LEGO, then paste a real Second Life script into a prim.
+Snap LSL together from puzzle bricks, then paste a real Second Life script into a prim.
 
 **Version:** `0.2.0`
 
@@ -33,7 +33,7 @@ Full walkthrough: [packaging/GETTING_STARTED.txt](packaging/GETTING_STARTED.txt)
 
 Not a full LSL IDE. The catalog is the events + the ll* calls you actually use for greeters, doors, listens, dialogs, sensors, particles, and the usual sensing/world helpers. Raw LSL bricks cover the rest.
 
-- **Zelos bricks** — Blockly 13, Mindstorms-style C-hats, colored categories
+- **Puzzle bricks** — Blockly 13, colored C-hats, toolbox categories
 - **Legal compilation units** — `default` always first, typed globals, no `void`, `for` index declared outside the `for`
 - **Official event signatures** — `touch_start(integer num_detected)`, `listen(integer channel, string name, key id, string message)`, etc.
 - **ll* catalog** — chat, looks, motion, sound, sensing, world, lists, math. Wiki link on every brick tooltip

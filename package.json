@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.2.0",
   "type": "module",
-  "description": "Mindstorms-style brick editor that compiles to LSL for Second Life",
+  "description": "Snap-together block editor that compiles to LSL for Second Life",
   "scripts": {
     "dev": "vite --host --port 5173",
     "build": "tsc --noEmit && vite build",
