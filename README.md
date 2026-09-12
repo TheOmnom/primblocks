@@ -29,8 +29,6 @@ Then:
 
 Full walkthrough: [packaging/GETTING_STARTED.txt](packaging/GETTING_STARTED.txt).
 
-The installer is built from `main` when I promote a version. Until the first Release exists, the live preview in this chat is the same app.
-
 ## What it is
 
 Not a full LSL IDE. The catalog is the events + the ll* calls you actually use for greeters, doors, listens, dialogs, sensors, particles, and the usual sensing/world helpers. Raw LSL bricks cover the rest.
@@ -68,8 +66,6 @@ Warnings + phone:
 
 Full set (every flyout, every example, guide, variable dialog): [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md).
 
-Re-capture under `docs/screenshots/` if the chrome changes.
-
 ## From source
 
 ```
@@ -98,7 +94,7 @@ npm run typecheck
 4. User-function bricks emit above states. LSL will not let a function change state — don't put a state brick in one.
 5. `assembleScript()` writes: comments → globals → functions → `default` → other states alphabetically.
 
-Details: [docs/LSL.md](docs/LSL.md). Code map: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). What to look at: [docs/REVIEW.md](docs/REVIEW.md).
+Details: [docs/LSL.md](docs/LSL.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/REVIEW.md](docs/REVIEW.md).
 
 ## Docs
 
@@ -116,8 +112,8 @@ Details: [docs/LSL.md](docs/LSL.md). Code map: [docs/ARCHITECTURE.md](docs/ARCHI
 
 ## Branching
 
-- **`dev`** — working branch (default). Editor, catalog, docs. Desktop CI builds the installers here as artifacts, no Release.
-- **`main`** — last snapshot I was willing to paste into a prim. Push here publishes the GitHub Release.
+- **`dev`** — working branch. Editor, catalog, docs.
+- **`main`** — GitHub default. The Windows/Mac/Linux Release is built from here.
 
 See [BRANCHING.md](BRANCHING.md).
 
