@@ -6,6 +6,7 @@ import { generateLsl } from "./generator";
 import { primTheme } from "./theme";
 import { buildToolbox } from "./toolbox";
 import { applyBlockWarnings, diagKey, validateWorkspace, type Diagnostic } from "./validate";
+import { attachWireLayer } from "./wires-layer";
 
 Blockly.setLocale(En as unknown as { [key: string]: string });
 
@@ -151,6 +152,7 @@ export function mountWorkspace(host: HTMLElement, handlers: EngineHandlers): Blo
   });
   fire();
   hideFlyout(workspace);
+  attachWireLayer(workspace);
   return workspace;
 }
 
@@ -187,6 +189,21 @@ export function saveState(workspace: Blockly.WorkspaceSvg): object {
 export function resizeWorkspace(workspace: Blockly.WorkspaceSvg) {
   Blockly.svgResize(workspace);
 }
+
+export function openToolboxCategory(workspace: Blockly.WorkspaceSvg, name: string) {
+  const toolbox = workspace.getToolbox();
+  if (!toolbox) return;
+  const items = toolbox.getToolboxItems?.() ?? [];
+  for (const item of items) {
+    const n = (item as { getName?: () => string }).getName?.();
+    if (n && n.toLowerCase() === name.toLowerCase()) {
+      toolbox.setSelectedItem?.(item);
+      return;
+    }
+  }
+}
+
+export const EMPTY_WORKSPACE = { blocks: { languageVersion: 0, blocks: [] } };
 
 const lastDiagKeys = new WeakMap<Blockly.Workspace, Set<string>>();
 

@@ -1,5 +1,6 @@
 import type { WorkspaceSvg } from "blockly/core";
 import {
+  Bookmark,
   BookOpen,
   Braces,
   FileText,
@@ -11,6 +12,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { CodePanel } from "@/components/code-panel";
 import { NotecardEditor } from "@/components/notecard-editor";
+import { PresetsDialog } from "@/components/presets-dialog";
+import { TutorialCoach } from "@/components/tutorial-coach";
 import { TutorialDialog } from "@/components/tutorial-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,14 +29,20 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { EMPTY_SCRIPT } from "@/lib/lsl/assemble";
 import { EXAMPLES, exampleById } from "@/lib/lsl/examples";
 import { greeterNotecard, type NotecardDoc } from "@/lib/lsl/notecard";
+import { tutorialById, type Tutorial } from "@/lib/lsl/tutorials";
 import type { Diagnostic } from "@/lib/lsl/validate";
 import {
+  clearTutorialScratch,
   loadNotecard,
   loadScriptName,
+  loadTutorialScratch,
   loadWorkspaceState,
   saveNotecard,
+  savePreset,
   saveScriptName,
+  saveTutorialScratch,
   saveWorkspaceState,
+  type UserPreset,
 } from "@/lib/lsl/storage";
 
 const VAR_TYPES = [
@@ -57,6 +66,9 @@ export function BlockEditor() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [examplesOpen, setExamplesOpen] = useState(false);
   const [tutorialsOpen, setTutorialsOpen] = useState(false);
+  const [presetsOpen, setPresetsOpen] = useState(false);
+  const [coachId, setCoachId] = useState<string | null>(null);
+  const [coachStep, setCoachStep] = useState(0);
   const [notecardOpen, setNotecardOpen] = useState(false);
   const [notecard, setNotecard] = useState<NotecardDoc>(greeterNotecard);
   const [varOpen, setVarOpen] = useState(false);
@@ -132,7 +144,7 @@ export function BlockEditor() {
     return () => window.clearInterval(id);
   }, [persist]);
 
-  function loadExample(id: string) {
+  function loadExample(id: string, quiet = false) {
     const ex = exampleById(id);
     const ws = wsRef.current;
     const engine = engineRef.current;
@@ -150,7 +162,89 @@ export function BlockEditor() {
     setDiagnostics(analyzed.diagnostics);
     persist();
     setExamplesOpen(false);
-    toast.success(`Loaded ${ex.title}`);
+    if (!quiet) toast.success(`Loaded ${ex.title}`);
+  }
+
+  function startTutorial(tutorial: Tutorial) {
+    const ws = wsRef.current;
+    const engine = engineRef.current;
+    if (!ws || !engine) return;
+    saveTutorialScratch({
+      state: engine.saveState(ws),
+      scriptName,
+      notecard,
+    });
+    if (tutorial.exampleId) {
+      loadExample(tutorial.exampleId, true);
+    } else {
+      engine.loadState(ws, engine.EMPTY_WORKSPACE);
+      setScriptName(tutorial.title);
+      saveScriptName(tutorial.title);
+      const analyzed = engine.analyzeWorkspace(ws);
+      setCode(analyzed.code);
+      setDiagnostics(analyzed.diagnostics);
+      persist();
+    }
+    if (tutorial.openNotecard) setNotecardOpen(true);
+    setCoachId(tutorial.id);
+    setCoachStep(0);
+    toast.message(tutorial.title);
+  }
+
+  function quitCoach() {
+    const scratch = loadTutorialScratch();
+    const ws = wsRef.current;
+    const engine = engineRef.current;
+    setCoachId(null);
+    setCoachStep(0);
+    if (scratch && ws && engine) {
+      engine.loadState(ws, scratch.state);
+      setScriptName(scratch.scriptName);
+      saveScriptName(scratch.scriptName);
+      setNotecard(scratch.notecard);
+      saveNotecard(scratch.notecard);
+      const analyzed = engine.analyzeWorkspace(ws);
+      setCode(analyzed.code);
+      setDiagnostics(analyzed.diagnostics);
+      persist();
+    }
+    clearTutorialScratch();
+  }
+
+  const openCategory = useCallback((name: string) => {
+    const ws = wsRef.current;
+    const engine = engineRef.current;
+    if (ws && engine) engine.openToolboxCategory(ws, name);
+  }, []);
+
+  function handleSavePreset(name: string) {
+    const ws = wsRef.current;
+    const engine = engineRef.current;
+    if (!ws || !engine) return;
+    savePreset({
+      name,
+      scriptName,
+      state: engine.saveState(ws),
+      notecard,
+    });
+    toast.success(`Saved “${name}”`);
+  }
+
+  function handleLoadPreset(preset: UserPreset) {
+    const ws = wsRef.current;
+    const engine = engineRef.current;
+    if (!ws || !engine) return;
+    engine.loadState(ws, preset.state);
+    setScriptName(preset.scriptName);
+    saveScriptName(preset.scriptName);
+    setNotecard(preset.notecard);
+    saveNotecard(preset.notecard);
+    const analyzed = engine.analyzeWorkspace(ws);
+    setCode(analyzed.code);
+    setDiagnostics(analyzed.diagnostics);
+    persist();
+    setPresetsOpen(false);
+    toast.success(`Loaded “${preset.name}”`);
   }
 
   function newScript() {
@@ -214,6 +308,10 @@ export function BlockEditor() {
             <FolderOpen />
             <span className="hidden sm:inline">Examples</span>
           </Button>
+          <Button variant="ghost" size="sm" onClick={() => setPresetsOpen(true)}>
+            <Bookmark />
+            <span className="hidden sm:inline">Presets</span>
+          </Button>
           <Button variant="ghost" size="sm" onClick={() => setTutorialsOpen(true)}>
             <GraduationCap />
             <span className="hidden sm:inline">Tutorials</span>
@@ -249,6 +347,16 @@ export function BlockEditor() {
             <div className="absolute inset-0 grid place-items-center bg-bg">
               <p className="text-sm text-muted">Loading bricks…</p>
             </div>
+          )}
+          {coachId && tutorialById(coachId) && (
+            <TutorialCoach
+              tutorial={tutorialById(coachId)!}
+              stepIndex={coachStep}
+              workspace={wsRef.current}
+              onStep={setCoachStep}
+              onOpenCategory={openCategory}
+              onQuit={quitCoach}
+            />
           )}
         </div>
         <CodePanel
@@ -297,7 +405,8 @@ export function BlockEditor() {
             <DialogTitle>How PrimBlocks compiles</DialogTitle>
             <DialogDescription>
               Yellow hats are events. Snap commands under them. The panel on the right is real LSL.
-              New here? Open <strong>Tutorials</strong> in the header — basic through expert.
+              New here? Open <strong>Tutorials</strong> in the header — it will not let you skip a brick.
+              Cables (toolbox) draw a noodle between matching send/receive names.
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[60vh] space-y-3 overflow-auto text-sm text-pretty">
@@ -393,11 +502,15 @@ export function BlockEditor() {
       <TutorialDialog
         open={tutorialsOpen}
         onOpenChange={setTutorialsOpen}
-        onLoadExample={(id) => {
-          loadExample(id);
-          setTutorialsOpen(false);
-        }}
-        onOpenNotecard={() => setNotecardOpen(true)}
+        onStart={startTutorial}
+      />
+
+      <PresetsDialog
+        open={presetsOpen}
+        onOpenChange={setPresetsOpen}
+        defaultName={scriptName}
+        onSave={handleSavePreset}
+        onLoad={handleLoadPreset}
       />
 
       <NotecardEditor

@@ -1,6 +1,7 @@
 import type { Block } from "blockly/core";
 import * as Blockly from "blockly/core";
 import { resolveOutputTypes } from "./resolve";
+import { matchingSends } from "./cables";
 import {
   allowedForOperand,
   arithmeticOutput,
@@ -125,6 +126,18 @@ function applyCallExpr(block: Block) {
   safeSetCheck(block.outputConnection, types && types.length ? types : null);
 }
 
+function applyCableRecv(block: Block) {
+  const name = String(block.getFieldValue("CABLE") || "").trim();
+  const send = name ? matchingSends(block.workspace, name)[0] : null;
+  const from = send
+    ? resolveOutputTypes(send.getInputTargetBlock("VALUE"))
+    : null;
+  safeSetCheck(
+    block.outputConnection,
+    from && from.length ? from : ["Integer", "Number", "String", "Key", "Vector", "Rotation", "List", "Boolean"],
+  );
+}
+
 export function installDynamicTypes() {
   patchInit("lsl_get_var", applyGetVar);
   patchInit("lsl_set_var", applySetVar);
@@ -137,4 +150,5 @@ export function installDynamicTypes() {
   patchInit("lsl_arithmetic", applyArithmetic);
   patchInit("lsl_compare", applyCompare);
   patchInit("lsl_call_expr", applyCallExpr);
+  patchInit("lsl_cable_recv", applyCableRecv);
 }

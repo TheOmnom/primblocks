@@ -62,6 +62,11 @@ export function buildToolbox() {
         block("lsl_comment"),
         block("lsl_raw_stmt"),
       ]),
+      cat("Cables", CAT.chat, [
+        block("lsl_group", undefined, { NAME: "logic" }),
+        block("lsl_cable_send", undefined, { CABLE: "greeting" }),
+        block("lsl_cable_recv", undefined, { CABLE: "greeting" }),
+      ]),
       cat("Looks", CAT.looks, [
         ...fnItems("looks"),
         block("lsl_color_named"),

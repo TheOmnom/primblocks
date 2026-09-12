@@ -10,6 +10,7 @@ import {
 } from "./notecard-gen";
 import { Order } from "./order";
 import { sanitizeIdent, sanitizeStateName } from "./reserved";
+import { collectCables } from "./cables";
 
 export { Order };
 
@@ -79,6 +80,11 @@ export function generateLsl(workspace: Workspace): string {
     const rawType = v.getType();
     if (!rawType || !VAR_DEFAULTS[rawType]) continue;
     globals.push(`${rawType} ${ident} = ${VAR_DEFAULTS[rawType]};`);
+  }
+
+  for (const cable of collectCables(workspace)) {
+    if (globals.some((g) => g.startsWith(`${cable.lslType} ${cable.ident} `))) continue;
+    globals.push(`${cable.lslType} ${cable.ident} = ${cable.fallback};`);
   }
 
   const tops = workspace.getTopBlocks(true);

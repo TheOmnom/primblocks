@@ -24,6 +24,7 @@ import {
   literalNumber,
   literalString,
 } from "./resolve";
+import { cableNameOf, matchingRecvs, matchingSends } from "./cables";
 
 export type Diagnostic = LimitHit & {
   blockId?: string;
@@ -338,6 +339,38 @@ export function validateWorkspace(workspace: Workspace): Diagnostic[] {
         kind: "rule",
         message: "Notecard line / setting bricks only work inside a read-notecard hat. “notecard ready” can sit in any event.",
       });
+    }
+
+    if (block.type === "lsl_cable_send" || block.type === "lsl_cable_recv") {
+      const name = cableNameOf(block);
+      if (!name) {
+        push(out, block, {
+          severity: "error",
+          kind: "rule",
+          message: "Name the cable. Matching send/receive pairs need the same name or the noodle will not draw and LSL will not know which global to use.",
+        });
+      } else if (block.type === "lsl_cable_send") {
+        if (!matchingRecvs(workspace, name).length) {
+          push(out, block, {
+            severity: "warning",
+            kind: "rule",
+            message: `Nothing receives “${name}”. Drop an along-cable brick with that name, or this write goes nowhere useful.`,
+          });
+        }
+        if (matchingSends(workspace, name).length > 1) {
+          push(out, block, {
+            severity: "warning",
+            kind: "rule",
+            message: `More than one send on “${name}”. Last write in event order wins. Split the name if they are different values.`,
+          });
+        }
+      } else if (!matchingSends(workspace, name).length) {
+        push(out, block, {
+          severity: "error",
+          kind: "rule",
+          message: `No send on “${name}”. The global stays at its zero until something writes it.`,
+        });
+      }
     }
 
     if (eventIdFromType(block.type)) {

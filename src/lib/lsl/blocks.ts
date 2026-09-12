@@ -7,6 +7,7 @@ import { LSL_FUNCTIONS, wikiFn, type ShadowSpec } from "./functions";
 import { lslGenerator, Order, valueCode, wireFunctionGenerators } from "./generator";
 import { lslStringLiteral, sanitizeIdent } from "./reserved";
 import { ncGlobalNames } from "./notecard";
+import { cableIdent, cableNameOf } from "./cables";
 
 let registered = false;
 
@@ -797,6 +798,41 @@ export function registerBlocks() {
       colour: CAT.world,
       tooltip: "Casts the setting value to the variable's type.",
     },
+    {
+      type: "lsl_group",
+      message0: "group %1",
+      args0: [textField("NAME", "logic")],
+      message1: "%1",
+      args1: [{ type: "input_statement", name: "DO" }],
+      previousStatement: null,
+      nextStatement: null,
+      colour: CAT.chat,
+      tooltip:
+        "Frame a stack so you can read it. Does not change LSL. Put send-along-cable at the edge when another group needs a value.",
+    },
+    {
+      type: "lsl_cable_send",
+      message0: "send %1 along %2",
+      args0: [
+        { type: "input_value", name: "VALUE" },
+        textField("CABLE", "greeting"),
+      ],
+      inputsInline: true,
+      previousStatement: null,
+      nextStatement: null,
+      colour: CAT.chat,
+      tooltip:
+        "Writes this value to a named cable (a typed global). Drop a matching receive elsewhere — a noodle is drawn between them.",
+    },
+    {
+      type: "lsl_cable_recv",
+      message0: "along %1",
+      args0: [textField("CABLE", "greeting")],
+      output: null,
+      colour: CAT.chat,
+      tooltip:
+        "Reads the last value sent on this cable. Name must match a send. Same idea as wiring two nodes, compiled as a global.",
+    },
   ];
 
   Blockly.common.defineBlocksWithJsonArray([
@@ -1069,6 +1105,21 @@ export function registerBlocks() {
     else if (t === "list") rhs = "llCSV2List(_nc_val)";
     return `${name} = ${rhs};\n`;
   };
+
+  lslGenerator.forBlock.lsl_group = (block, g) => {
+    const name = String(block.getFieldValue("NAME") || "group").trim() || "group";
+    const body = g.statementToCode(block, "DO");
+    return `// group ${name}\n${body}`;
+  };
+  lslGenerator.forBlock.lsl_cable_send = (block, g) => {
+    const ident = cableIdent(cableNameOf(block) || "wire");
+    const val = g.valueToCode(block, "VALUE", Order.ASSIGNMENT) || '""';
+    return `${ident} = ${val};\n`;
+  };
+  lslGenerator.forBlock.lsl_cable_recv = (block) => [
+    cableIdent(cableNameOf(block) || "wire"),
+    Order.ATOMIC,
+  ];
 
   const constTypes = [
     "lsl_const_bool",

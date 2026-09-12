@@ -2,7 +2,7 @@
 
 **dev** is the branch I actually work on. Editor, LSL catalog, generator, docs, screenshots — all of it. Desktop CI still *builds* the Windows/Mac/Linux files on `dev` so I can download the artifacts and click through them. It does not publish a Release.
 
-**main** is the GitHub default and the snapshot of “this compiled in a prim and I didn’t hate it.” Pushing `main` tags `v0.2.0` (or whatever is in `package.json`) and uploads:
+**main** is the GitHub default and the snapshot of “this compiled in a prim and I didn’t hate it.” Pushing `main` tags `v0.2.5` (or whatever is in `package.json`) and uploads:
 
 - `PrimBlocks-Setup.exe`
 - `PrimBlocks-windows.zip`

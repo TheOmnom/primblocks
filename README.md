@@ -2,7 +2,7 @@
 
 Snap LSL together from puzzle bricks, then paste a real Second Life script into a prim.
 
-**Version:** `0.2.0`
+**Version:** `0.2.5`
 
 Yellow hats are events. Colored bricks stack under them. The panel on the right is the compiled `.lsl` — not a sketch.
 
@@ -34,12 +34,14 @@ Full walkthrough: [packaging/GETTING_STARTED.txt](packaging/GETTING_STARTED.txt)
 Not a full LSL IDE. The catalog is the events + the ll* calls you actually use for greeters, doors, listens, dialogs, sensors, particles, and the usual sensing/world helpers. Raw LSL bricks cover the rest.
 
 - **Puzzle bricks** — Blockly 13, colored C-hats, toolbox categories
+- **Cables** — named send/receive between groups, noodle drawn on the workspace, compiles to a typed global
+- **Presets** — save the current workspace in this browser / the desktop profile. Nothing is uploaded
+- **Tutorials** — basic / intermediate / advanced / expert. One brick at a time, and why that field is what it is.
 - **Legal compilation units** — `default` always first, typed globals, no `void`, `for` index declared outside the `for`
 - **Official event signatures** — `touch_start(integer num_detected)`, `listen(integer channel, string name, key id, string message)`, etc.
 - **ll* catalog** — chat, looks, motion, sound, sensing, world, lists, math. Wiki link on every brick tooltip
 - **Type snaps** — integer will plug into a float socket, not the other way around. String + number needs a cast brick
 - **Warnings** — sensor range, chat bytes, timer faster than a sim frame, forced delays (IM 2s, dialog 1s, `llSetPos` 0.2s)
-- **Tutorials** — basic / intermediate / advanced / expert. Most of them load the matching bricks.
 - **Examples** — greeter, notecard greeter, two-state door, timer counter, owner commands, dialog, nearby sensor
 - **Notecards** — builder panel (`key = value`, `#` comments, 255-byte lines) + a read-notecard hat that emits the real dataserver / EOF / NAK / inventory-check / CHANGED_INVENTORY pattern
 - **localStorage** — workspace + script name + notecard survive a refresh. Nothing is uploaded
@@ -100,6 +102,7 @@ Details: [docs/LSL.md](docs/LSL.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md
 
 | File | What |
 |---|---|
+| [CHANGELOG.md](CHANGELOG.md) | What changed in 0.2.5 |
 | [packaging/GETTING_STARTED.txt](packaging/GETTING_STARTED.txt) | Which file to download, then what to click |
 | [packaging/README.md](packaging/README.md) | How the Release is built |
 | [docs/REVIEW.md](docs/REVIEW.md) | Where to start, easy-to-break generator rules, known gaps |
@@ -119,4 +122,4 @@ See [BRANCHING.md](BRANCHING.md).
 
 ## License / notes
 
-Personal / local use. `0.2.0` — catalog is not every ll* on the wiki. Hover a brick for the wiki signature. Forced delays and in-world caps warn; they still compile because the simulator is what actually sleeps / clamps.
+Personal / local use. `0.2.5` — catalog is not every ll* on the wiki. Hover a brick for the wiki signature. Forced delays and in-world caps warn; they still compile because the simulator is what actually sleeps / clamps.
