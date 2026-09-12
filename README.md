@@ -1,16 +1,40 @@
 # PrimBlocks
 
-Browser editor that snaps LSL like LEGO Mindstorms / Scratch, then dumps a real Linden Scripting Language script you paste into a Second Life prim.
+Snap LSL together like LEGO, then paste a real Second Life script into a prim.
 
 **Version:** `0.2.0`
 
-Yellow hats are events. Teal/colored command bricks stack under them. The panel on the right is the compiled `.lsl` — not a sketch.
-
-Not a full LSL IDE. The catalog is the events + the ll* calls you actually use for greeters, doors, listens, dialogs, sensors, particles, and the usual sensing/world helpers. Raw LSL bricks cover the rest.
+Yellow hats are events. Colored bricks stack under them. The panel on the right is the compiled `.lsl` — not a sketch.
 
 Second Life / LSL are Linden Lab trademarks. This is not affiliated with Linden Lab.
 
-## Features
+## Not a programmer?
+
+You do not install Node. You download **one file** from
+[Releases](https://github.com/TheOmnom/primblocks/releases)
+(log into GitHub first — this repo is private).
+
+| I use… | Download this |
+| --- | --- |
+| Windows, just make it work | **PrimBlocks-Setup.exe** |
+| Windows, no installer | PrimBlocks-windows.zip |
+| Mac | PrimBlocks-mac.dmg |
+| Linux | PrimBlocks-linux.AppImage |
+| I want the code | Source code (zip) — skip this unless you are building it |
+
+Then:
+
+1. Run that file. Windows: if it says *Windows protected your PC* → **More info** → **Run anyway**. Mac: right-click → **Open**.
+2. **Examples** → **Touch greeter** → **Copy**.
+3. In Second Life: right-click a prim → **Build** → **Content** → **New Script** → paste → **Save**.
+
+Full walkthrough: [packaging/GETTING_STARTED.txt](packaging/GETTING_STARTED.txt).
+
+The installer is built from `main` when I promote a version. Until the first Release exists, the live preview in this chat is the same app.
+
+## What it is
+
+Not a full LSL IDE. The catalog is the events + the ll* calls you actually use for greeters, doors, listens, dialogs, sensors, particles, and the usual sensing/world helpers. Raw LSL bricks cover the rest.
 
 - **Zelos bricks** — Blockly 13, Mindstorms-style C-hats, colored categories
 - **Legal compilation units** — `default` always first, typed globals, no `void`, `for` index declared outside the `for`
@@ -46,14 +70,20 @@ Full set (every flyout, every example, guide, variable dialog): [docs/SCREENSHOT
 
 Re-capture under `docs/screenshots/` if the chrome changes.
 
-## Quick start
+## From source
 
 ```
 npm install
 npm run dev
 ```
 
-Opens on port 5173. Copy the script → in SL: Build → Script → New Script → replace the stub → Save.
+Opens on port 5173. Same Copy → New Script → Save loop.
+
+Desktop window (needs [Rust](https://rustup.rs)):
+
+```
+npm run desktop
+```
 
 ```
 npm test
@@ -74,6 +104,8 @@ Details: [docs/LSL.md](docs/LSL.md). Code map: [docs/ARCHITECTURE.md](docs/ARCHI
 
 | File | What |
 |---|---|
+| [packaging/GETTING_STARTED.txt](packaging/GETTING_STARTED.txt) | Which file to download, then what to click |
+| [packaging/README.md](packaging/README.md) | How the Release is built |
 | [docs/REVIEW.md](docs/REVIEW.md) | Where to start, easy-to-break generator rules, known gaps |
 | [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md) | Full screenshot gallery |
 | [docs/LSL.md](docs/LSL.md) | LSL rules this editor actually encodes |
@@ -84,8 +116,8 @@ Details: [docs/LSL.md](docs/LSL.md). Code map: [docs/ARCHITECTURE.md](docs/ARCHI
 
 ## Branching
 
-- **`dev`** — working branch (default). Editor, catalog, docs.
-- **`main`** — last snapshot I was willing to paste into a prim.
+- **`dev`** — working branch (default). Editor, catalog, docs. Desktop CI builds the installers here as artifacts, no Release.
+- **`main`** — last snapshot I was willing to paste into a prim. Push here publishes the GitHub Release.
 
 See [BRANCHING.md](BRANCHING.md).
 

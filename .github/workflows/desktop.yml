@@ -1,0 +1,151 @@
+name: desktop
+
+on:
+  push:
+    branches: [dev, main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            name: windows
+          - os: macos-latest
+            name: macos
+          - os: ubuntu-22.04
+            name: linux
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        if: matrix.name != 'macos'
+
+      - uses: dtolnay/rust-toolchain@stable
+        if: matrix.name == 'macos'
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          prefix-key: primblocks-${{ matrix.name }}
+
+      - name: Linux webview deps
+        if: matrix.name == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+
+      - run: npm ci
+
+      - name: Build Windows installer + exe
+        if: matrix.name == 'windows'
+        run: npx tauri build --bundles nsis
+
+      - name: Build Mac disk image (Intel + Apple Silicon)
+        if: matrix.name == 'macos'
+        run: npx tauri build --target universal-apple-darwin --bundles dmg
+
+      - name: Build Linux AppImage
+        if: matrix.name == 'linux'
+        run: npx tauri build --bundles appimage
+
+      - name: Name the Windows files
+        if: matrix.name == 'windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist-release | Out-Null
+          $setup = Get-ChildItem -Path src-tauri/target -Recurse -Filter *-setup.exe | Select-Object -First 1
+          if (-not $setup) { throw "NSIS setup.exe not found" }
+          Copy-Item $setup.FullName dist-release/PrimBlocks-Setup.exe
+          $exe = Get-ChildItem -Path src-tauri/target/release -Filter PrimBlocks.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $exe) { $exe = Get-ChildItem -Path src-tauri/target/release -Filter primblocks.exe | Select-Object -First 1 }
+          if (-not $exe) { throw "PrimBlocks.exe not found" }
+          $stage = "dist-release/_portable"
+          New-Item -ItemType Directory -Force -Path $stage | Out-Null
+          Copy-Item $exe.FullName "$stage/PrimBlocks.exe"
+          Copy-Item packaging/GETTING_STARTED.txt "$stage/GETTING_STARTED.txt"
+          if (Test-Path dist-release/PrimBlocks-windows.zip) { Remove-Item dist-release/PrimBlocks-windows.zip }
+          Compress-Archive -Path "$stage/*" -DestinationPath dist-release/PrimBlocks-windows.zip
+          Remove-Item -Recurse -Force $stage
+
+      - name: Name the Mac file
+        if: matrix.name == 'macos'
+        run: |
+          mkdir -p dist-release
+          dmg=$(find src-tauri/target -name '*.dmg' | head -n 1)
+          test -n "$dmg"
+          cp "$dmg" dist-release/PrimBlocks-mac.dmg
+
+      - name: Name the Linux file
+        if: matrix.name == 'linux'
+        run: |
+          mkdir -p dist-release
+          img=$(find src-tauri/target -name '*.AppImage' | head -n 1)
+          test -n "$img"
+          cp "$img" dist-release/PrimBlocks-linux.AppImage
+          chmod +x dist-release/PrimBlocks-linux.AppImage
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: dist-release/*
+          if-no-files-found: error
+
+  release:
+    needs: desktop
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist-release
+          merge-multiple: true
+
+      - name: Publish GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          VER=$(node -p "require('./package.json').version")
+          ls -la dist-release
+          test -f dist-release/PrimBlocks-Setup.exe
+          test -f dist-release/PrimBlocks-windows.zip
+          test -f dist-release/PrimBlocks-mac.dmg
+          test -f dist-release/PrimBlocks-linux.AppImage
+
+          if gh release view "v${VER}" >/dev/null 2>&1; then
+            gh release upload "v${VER}" \
+              dist-release/PrimBlocks-Setup.exe \
+              dist-release/PrimBlocks-windows.zip \
+              dist-release/PrimBlocks-mac.dmg \
+              dist-release/PrimBlocks-linux.AppImage \
+              --clobber
+            gh release edit "v${VER}" --title "PrimBlocks v${VER}" --notes-file packaging/RELEASE_NOTES.md
+          else
+            gh release create "v${VER}" \
+              dist-release/PrimBlocks-Setup.exe \
+              dist-release/PrimBlocks-windows.zip \
+              dist-release/PrimBlocks-mac.dmg \
+              dist-release/PrimBlocks-linux.AppImage \
+              --title "PrimBlocks v${VER}" \
+              --notes-file packaging/RELEASE_NOTES.md
+          fi

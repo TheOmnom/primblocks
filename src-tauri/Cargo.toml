@@ -1,0 +1,24 @@
+[package]
+name = "primblocks"
+version = "0.2.0"
+description = "Snap-together LSL for Second Life"
+authors = ["TheOmnom"]
+edition = "2021"
+rust-version = "1.77"
+
+[[bin]]
+name = "PrimBlocks"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

@@ -2,9 +2,18 @@
 
 Private repo, just me.
 
-**dev** is the default branch and the one I actually work on. Editor, LSL catalog, generator, docs, screenshots — all of it.
+**dev** is the default branch and the one I actually work on. Editor, LSL catalog, generator, docs, screenshots — all of it. Desktop CI still *builds* the Windows/Mac/Linux files on `dev` so I can download the artifacts and click through them. It does not publish a Release.
 
-**main** is a snapshot of “this compiled in a prim and I didn’t hate it.” There is no GitHub Release, no zip, no versioned download. Promoting is a merge:
+**main** is a snapshot of “this compiled in a prim and I didn’t hate it.” Pushing `main` tags `v0.2.0` (or whatever is in `package.json`) and uploads:
+
+- `PrimBlocks-Setup.exe`
+- `PrimBlocks-windows.zip`
+- `PrimBlocks-mac.dmg`
+- `PrimBlocks-linux.AppImage`
+
+GitHub also glues Source code (zip) and Source code (tar.gz) onto that tag. Those are for programmers.
+
+Promote:
 
 ```
 git checkout main
@@ -15,7 +24,12 @@ git checkout dev
 
 If it isn’t fast-forward, main got a direct commit. Don’t do that.
 
-CI (`.github/workflows/test.yml`) runs `npm test` and `npm run typecheck` on both branches. Red CI means don’t merge.
+Bump `version` in `package.json`, `src-tauri/tauri.conf.json`, and `src-tauri/Cargo.toml` together *before* promoting, or the tag will collide with the last Release.
+
+CI:
+
+- `.github/workflows/test.yml` — `npm test` + typecheck, both branches. Red means don’t merge.
+- `.github/workflows/desktop.yml` — Tauri installers. Artifacts on `dev`, GitHub Release on `main`.
 
 ## Why two branches
 
@@ -23,7 +37,9 @@ Same idea as the sorter repo. `dev` can be half-broken bricks and a catalog row 
 
 ## Running it
 
-Browser app. No installer.
+Not a programmer: [packaging/GETTING_STARTED.txt](packaging/GETTING_STARTED.txt).
+
+From source:
 
 ```
 npm install
@@ -31,6 +47,12 @@ npm run dev
 ```
 
 http://127.0.0.1:5173
+
+Desktop window (needs Rust):
+
+```
+npm run desktop
+```
 
 ```
 npm test
@@ -42,7 +64,7 @@ npm run catalog
 
 ## Persistence
 
-The editor keeps workspace JSON in the browser:
+The editor keeps workspace JSON in the browser / WebView profile, not next to the exe:
 
 - `primblocks.workspace.v1`
 - `primblocks.scriptName.v1`
@@ -50,8 +72,10 @@ The editor keeps workspace JSON in the browser:
 
 Bumping the `v1` suffix is a schema break — old localStorage falls back to the greeter example. Don’t bump it unless the Blockly serialization actually changed.
 
+Replacing the Setup / zip / dmg / AppImage does not wipe bricks.
+
 ## Don’t
 
-- Don’t commit `node_modules` or `dist`.
+- Don’t commit `node_modules`, `dist`, or `src-tauri/target`.
 - Don’t drop Linden Lab assets or in-world object exports in here.
 - Don’t merge `dev` → `main` as a drive-by. That’s a “I reviewed the LSL” step.

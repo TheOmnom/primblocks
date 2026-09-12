@@ -1,0 +1,103 @@
+PrimBlocks — pick one file and run it
+
+You do not need Git, Node, or Python.
+
+
+WHICH FILE
+==========
+
+  Windows, I just want it to work
+      PrimBlocks-Setup.exe
+
+  Windows, I don't want an installer
+      PrimBlocks-windows.zip
+
+  Mac
+      PrimBlocks-mac.dmg
+
+  Linux
+      PrimBlocks-linux.AppImage
+
+  I want to read / build the code
+      Source code (zip)  — skip this unless you are a programmer
+
+
+WINDOWS (Setup)
+===============
+
+  1. Download PrimBlocks-Setup.exe. Not "Source code".
+  2. Double-click it.
+  3. If Windows says "Windows protected your PC":
+        More info  →  Run anyway
+     Unsigned apps do that. Firestorm did too the first time.
+  4. Next, Install, Finish. A PrimBlocks icon lands on the desktop.
+     No admin password.
+  5. Open PrimBlocks.
+
+
+WINDOWS (zip)
+=============
+
+  1. Download PrimBlocks-windows.zip.
+  2. Right-click → Extract All. Open the NEW folder, not the zip.
+  3. Double-click PrimBlocks.exe.
+  4. Same "More info → Run anyway" if Windows asks.
+
+
+MAC
+===
+
+  1. Download PrimBlocks-mac.dmg and open it.
+  2. Drag PrimBlocks to Applications (or run it from the disk image).
+  3. First launch: right-click PrimBlocks → Open. Click Open again.
+     Apple complains because I am not paying them $99/year to sign it.
+  4. Intel and Apple Silicon are both in that one dmg.
+
+
+LINUX
+=====
+
+  1. Download PrimBlocks-linux.AppImage.
+  2. chmod +x PrimBlocks-linux.AppImage
+  3. Double-click it, or run ./PrimBlocks-linux.AppImage
+  Needs a recent Ubuntu/Debian/Fedora-ish box with a desktop.
+
+
+ONCE IT'S OPEN
+==============
+
+  1. Examples → Touch greeter.
+  2. Copy.
+  3. In Second Life: right-click a prim → Build → Content → New Script.
+     Select all, paste, Save.
+
+  The script in the prim is now yours. Closing PrimBlocks does not remove it.
+
+  Notecard greeter needs TWO things in the same prim:
+    - the script (Copy, New Script, paste)
+    - the notecard (Notecard button → Copy, New Note, paste, name it config)
+
+
+UPDATING
+========
+
+  Close PrimBlocks first.
+
+  Setup.exe  — run the newer Setup. It replaces the app. Your bricks stay
+               (they live in Windows/Mac/Linux app data, not in the install).
+  zip        — unzip over the old folder, or unzip next to it and throw the
+               old folder away.
+  dmg / AppImage — replace the old file with the new one.
+
+
+IF IT WILL NOT OPEN
+===================
+
+  Windows 10 or 11. Edge / WebView2 is already on most PCs. The Setup
+  will fetch WebView2 if it's missing.
+
+  Mac: you have to right-click → Open the first time. Double-click alone
+  is not enough for an unsigned app.
+
+  Linux: if the AppImage does nothing, run it from a terminal and read
+  the error. WebKitGTK is the usual missing piece.

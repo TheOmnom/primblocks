@@ -8,13 +8,17 @@ const root = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  // Relative paths so the Tauri webview can load the built files.
+  base: "./",
   resolve: {
     alias: {
       "@": path.join(root, "src"),
     },
   },
   server: {
-    host: true,
+    host: "127.0.0.1",
     port: 5173,
+    strictPort: true,
   },
+  clearScreen: false,
 });
