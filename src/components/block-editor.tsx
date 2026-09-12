@@ -2,12 +2,14 @@ import type { WorkspaceSvg } from "blockly/core";
 import {
   BookOpen,
   Braces,
+  FileText,
   FolderOpen,
   Plus,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { CodePanel } from "@/components/code-panel";
+import { NotecardEditor } from "@/components/notecard-editor";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,10 +23,13 @@ import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { EMPTY_SCRIPT } from "@/lib/lsl/assemble";
 import { EXAMPLES, exampleById } from "@/lib/lsl/examples";
+import { greeterNotecard, type NotecardDoc } from "@/lib/lsl/notecard";
 import type { Diagnostic } from "@/lib/lsl/validate";
 import {
+  loadNotecard,
   loadScriptName,
   loadWorkspaceState,
+  saveNotecard,
   saveScriptName,
   saveWorkspaceState,
 } from "@/lib/lsl/storage";
@@ -49,6 +54,8 @@ export function BlockEditor() {
   const [ready, setReady] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [examplesOpen, setExamplesOpen] = useState(false);
+  const [notecardOpen, setNotecardOpen] = useState(false);
+  const [notecard, setNotecard] = useState<NotecardDoc>(greeterNotecard);
   const [varOpen, setVarOpen] = useState(false);
   const [varName, setVarName] = useState("count");
   const [varType, setVarType] = useState<(typeof VAR_TYPES)[number]>("integer");
@@ -87,6 +94,7 @@ export function BlockEditor() {
       const saved = loadWorkspaceState();
       const name = loadScriptName();
       setScriptName(name);
+      setNotecard(loadNotecard());
       if (saved) {
         try {
           engine.loadState(ws, saved);
@@ -129,6 +137,11 @@ export function BlockEditor() {
     engine.loadState(ws, ex.state);
     setScriptName(ex.title);
     saveScriptName(ex.title);
+    if (ex.id === "notecard") {
+      const card = greeterNotecard();
+      setNotecard(card);
+      saveNotecard(card);
+    }
     const analyzed = engine.analyzeWorkspace(ws);
     setCode(analyzed.code);
     setDiagnostics(analyzed.diagnostics);
@@ -166,6 +179,11 @@ export function BlockEditor() {
     saveScriptName(v);
   }
 
+  function onNotecardChange(next: NotecardDoc) {
+    setNotecard(next);
+    saveNotecard(next);
+  }
+
   return (
     <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-bg text-fg">
       <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border bg-surface px-3">
@@ -192,6 +210,10 @@ export function BlockEditor() {
           <Button variant="ghost" size="sm" onClick={() => setExamplesOpen(true)}>
             <FolderOpen />
             <span className="hidden sm:inline">Examples</span>
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => setNotecardOpen(true)}>
+            <FileText />
+            <span className="hidden sm:inline">Notecard</span>
           </Button>
           <Button variant="ghost" size="sm" onClick={newScript}>
             <Plus />
@@ -242,7 +264,7 @@ export function BlockEditor() {
           <DialogHeader>
             <DialogTitle>Example scripts</DialogTitle>
             <DialogDescription>
-              Legal LSL, ready to paste. Each one teaches a pattern you will reuse in-world.
+              Legal LSL, ready to paste. Notecard greeter is the one that needs a matching note in the prim.
             </DialogDescription>
           </DialogHeader>
           <ul className="grid gap-2">
@@ -308,6 +330,16 @@ export function BlockEditor() {
               Copy the script, in Second Life choose Build → Script → New Script, replace the stub, save.
               Hover any brick for the wiki signature. Raw LSL bricks cover functions we have not bricked yet.
             </p>
+            <p>
+              Config that should change without recoding the script lives on a <strong>notecard in the same
+              prim</strong>. World → “read notecard” emits the real pattern: inventory check,{" "}
+              <code className="font-mono">llGetNotecardLine</code>, <code className="font-mono">dataserver</code>{" "}
+              with <code className="font-mono">NAK</code> retry and <code className="font-mono">EOF</code>, skip{" "}
+              <code className="font-mono">#</code> / <code className="font-mono">//</code> / blank, then the next
+              line. 0.1s delay per line. Do not change state while it is reading. Build the card in the
+              Notecard panel — inventory name must match the brick — copy, New Note, paste, drop in the prim.
+              Format is <code className="font-mono">key = value</code>. Raw lines (no equals) are access lists.
+            </p>
           </div>
         </DialogContent>
       </Dialog>
@@ -349,6 +381,13 @@ export function BlockEditor() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <NotecardEditor
+        open={notecardOpen}
+        onOpenChange={setNotecardOpen}
+        doc={notecard}
+        onChange={onNotecardChange}
+      />
     </div>
   );
 }

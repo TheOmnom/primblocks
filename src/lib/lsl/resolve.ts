@@ -29,6 +29,15 @@ export function ancestorEvent(block: Block): Block | null {
   return null;
 }
 
+export function ancestorNotecard(block: Block): Block | null {
+  let p: Block | null = block;
+  while (p) {
+    if (p.type === "lsl_notecard_read") return p;
+    p = p.getSurroundParent() ?? p.getParent();
+  }
+  return null;
+}
+
 export function ancestorFunction(block: Block): Block | null {
   let p: Block | null = block;
   while (p) {
@@ -79,10 +88,21 @@ export function resolveOutputTypes(block: Block | null): LslType[] | null {
       return ["Key"];
     case "lsl_const_eof":
       return ["String"];
+    case "lsl_nc_line":
+    case "lsl_nc_key":
+    case "lsl_nc_value":
+      return ["String"];
+    case "lsl_nc_index":
+    case "lsl_nc_ready":
+      return ["Integer"];
     case "lsl_const_math":
       return ["Number"];
-    case "lsl_get_var":
-      return [varTypeToOutput(varTypeOf(block))];
+    case "lsl_get_var": {
+      const field = block.getField("VAR") as Blockly.FieldVariable | null;
+      const t = field?.getVariable()?.getType();
+      if (!t) return null;
+      return [varTypeToOutput(t)];
+    }
     case "lsl_cast":
       return [castOutput(String(block.getFieldValue("TYPE") || "integer"))];
     case "lsl_param": {

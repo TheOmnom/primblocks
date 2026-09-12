@@ -1,6 +1,6 @@
 # Bundled examples
 
-All six live in `src/lib/lsl/examples.ts` as Blockly serialization. Loading one replaces the workspace (and the script name).
+All seven live in `src/lib/lsl/examples.ts` as Blockly serialization. Loading one replaces the workspace (and the script name). The notecard greeter also seeds the Notecard panel.
 
 Paste targets: a box prim is enough. Door wants a prim that can rotate; sensor wants an avatar in range.
 
@@ -21,7 +21,22 @@ default
 
 If the owner-say line is missing, `scrub_` is not following `next`.
 
-## 2. Two-state door
+## 2. Notecard greeter
+
+The one that is an actual in-world object. World → read-notecard hat + a `touch_start` that waits on the ready flag.
+
+Expected output (trimmed):
+
+- globals `string greeting`, `integer channel`, plus `nc_name_config` / `nc_line_config` / `nc_query_config` / `nc_ready_config`
+- `nc_start_config()` checks `INVENTORY_NOTECARD`, then `llGetNotecardLine(..., 0)`
+- `default` has `state_entry` (calls start), `dataserver` (NAK / EOF / parse `key = value`), `changed` (`CHANGED_INVENTORY`), `touch_start`
+- **one** `state_entry` and **one** `dataserver` — the reader merges, it does not duplicate
+- no `void`
+- Notecard panel text named `config`: `greeting = Hello, Avatar!` and `channel = 0`
+
+In-world: New Script (paste LSL) **and** New Note (paste the panel, name it `config`), both in the same prim.
+
+## 3. Two-state door
 
 `default` = closed. Touch → `state open` (90° yaw). Touch again → back. Hover text on each `state_entry`.
 
@@ -32,7 +47,7 @@ Things to check in the output:
 - `state open;` / `state default;` as statements, not function calls
 - no listens/timers, so the "cleared on state change" rule does not bite here
 
-## 3. Timer counter
+## 4. Timer counter
 
 Typed global `integer count`. `state_entry` starts a 1.0 s timer. `timer` event increments and hover-texts the value with a `(string)` cast.
 
@@ -42,7 +57,7 @@ Check:
 - `count += 1;` (change-by brick), not `count = count + 1` unless you stacked it that way
 - `(string)count` — LSL will not implicitly stringify for `llSetText`
 
-## 4. Owner commands
+## 5. Owner commands
 
 `state_entry` sets an `llListen` on a negative channel, filtered to the owner key. `listen` branches on the message.
 
@@ -52,7 +67,7 @@ Check:
 - filter key is `llGetOwner()`, not `NULL_KEY`, so strangers on that channel are ignored
 - if you add a second state later, that listen is gone until `state_entry` runs again
 
-## 5. Dialog
+## 6. Dialog
 
 Touch → `llDialog` to the toucher (`llDetectedKey(0)`) with a short button list on a negative channel. `listen` handles the click.
 
@@ -62,7 +77,7 @@ Check:
 - buttons list is 1–12 strings, each ≤ 24 bytes (validator warns)
 - 1 s forced delay on `llDialog` shows as a warning, not an error
 
-## 6. Nearby greeter
+## 7. Nearby greeter
 
 `llSensorRepeat` for `AGENT`, 8 m, `PI` arc, 5 s. `sensor` event `llSay`s hello.
 

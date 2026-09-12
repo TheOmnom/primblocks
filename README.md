@@ -2,7 +2,7 @@
 
 Browser editor that snaps LSL like LEGO Mindstorms / Scratch, then dumps a real Linden Scripting Language script you paste into a Second Life prim.
 
-**Version:** `0.1.0`
+**Version:** `0.2.0`
 
 Yellow hats are events. Teal/colored command bricks stack under them. The panel on the right is the compiled `.lsl` — not a sketch.
 
@@ -18,8 +18,9 @@ Second Life / LSL are Linden Lab trademarks. This is not affiliated with Linden 
 - **ll* catalog** — chat, looks, motion, sound, sensing, world, lists, math. Wiki link on every brick tooltip
 - **Type snaps** — integer will plug into a float socket, not the other way around. String + number needs a cast brick
 - **Warnings** — sensor range, chat bytes, timer faster than a sim frame, forced delays (IM 2s, dialog 1s, `llSetPos` 0.2s)
-- **Examples** — greeter, two-state door, timer counter, owner commands, dialog, nearby sensor
-- **localStorage** — workspace + script name survive a refresh. Nothing is uploaded
+- **Examples** — greeter, notecard greeter, two-state door, timer counter, owner commands, dialog, nearby sensor
+- **Notecards** — builder panel (`key = value`, `#` comments, 255-byte lines) + a read-notecard hat that emits the real dataserver / EOF / NAK / inventory-check / CHANGED_INVENTORY pattern
+- **localStorage** — workspace + script name + notecard survive a refresh. Nothing is uploaded
 
 ## Screenshots
 

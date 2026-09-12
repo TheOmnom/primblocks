@@ -105,7 +105,21 @@ One sweep or repeat. Max 16 hits, nearest first, 96 m. Arc `PI` is a full sphere
 
 `llHTTPRequest` → `http_response`. About 1 request / 0.5 s / owner, body capped (2048, or 16384 with `HTTP_BODY_MAXLENGTH`).
 
-Notecard lines are 0-based. `data == EOF` at end (`EOF` constant brick).
+## Notecards
+
+This is the pattern PrimBlocks emits. It is what actually works in a prim.
+
+- `llGetNotecardLine(name, line)` is **async**. The return is a query `key`. The line text arrives in `dataserver(queryid, data)`.
+- Forced delay **0.1 s per line**. A 40-line card takes ~4 s. The script sleeps; other events queue.
+- Lines are 0-based. `data == EOF` at end. `data == NAK` means the asset is not in the region cache yet — retry the **same** line.
+- Cap is **255 UTF-8 bytes per line**. Extra is truncated in-world. The Notecard panel flags this before you paste.
+- Check `llGetInventoryType(name) == INVENTORY_NOTECARD` first. Otherwise you get `NULL_KEY` and silence.
+- `CHANGED_INVENTORY` is how you pick up an edited card. State change **clears the event queue**, so do not `state foo;` while a read is in flight.
+- Format PrimBlocks skips in the reader: blank lines, `# …`, `// …`. Settings are `key = value` (first `=`). A line with no `=` is a raw line (access lists).
+
+The World → “read notecard” hat is **not** an LSL event. The generator injects `nc_start_*()`, globals, and merges into `state_entry` / `dataserver` / `changed` so you still only have one handler per event per state.
+
+Drop the notecard in the **same prim** as the script. Inventory name must match the brick.
 
 ## Money / permissions
 

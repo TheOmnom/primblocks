@@ -6,6 +6,7 @@ import { LSL_EVENT_DEFS } from "./events";
 import { LSL_FUNCTIONS, wikiFn, type ShadowSpec } from "./functions";
 import { lslGenerator, Order, valueCode, wireFunctionGenerators } from "./generator";
 import { lslStringLiteral, sanitizeIdent } from "./reserved";
+import { ncGlobalNames } from "./notecard";
 
 let registered = false;
 
@@ -681,7 +682,10 @@ export function registerBlocks() {
       ["LIST_STAT_NUM_COUNT", "LIST_STAT_NUM_COUNT"],
       ["LIST_STAT_RANGE", "LIST_STAT_RANGE"],
     ]),
-    constBlock("lsl_const_eof", "String", [["EOF", "EOF"]]),
+    constBlock("lsl_const_eof", "String", [
+      ["EOF", "EOF"],
+      ["NAK", "NAK"],
+    ]),
     {
       type: "lsl_param",
       message0: "event value %1",
@@ -711,6 +715,87 @@ export function registerBlocks() {
       output: null,
       colour: CAT.sensing,
       tooltip: "Official event parameter name. Only valid inside the matching event brick.",
+    },
+    {
+      type: "lsl_notecard_read",
+      message0: "read notecard %1 in state %2",
+      args0: [textField("NAME", "config"), textField("STATE", "default")],
+      message1: "reload when inventory changes %1",
+      args1: [{ type: "field_checkbox", name: "RELOAD", checked: true }],
+      message2: "for each line / setting %1",
+      args2: [{ type: "input_statement", name: "DO" }],
+      message3: "when finished %1",
+      args3: [{ type: "input_statement", name: "DONE" }],
+      message4: "if notecard missing %1",
+      args4: [{ type: "input_statement", name: "MISSING" }],
+      colour: CAT.world,
+      tooltip:
+        "Real notecard reader: inventory check, llGetNotecardLine, dataserver, EOF, NAK retry, next line. Skips # // and blank lines. Inventory name must match the Notecard panel. 0.1s delay per line.",
+      helpUrl: "https://wiki.secondlife.com/wiki/LlGetNotecardLine",
+    },
+    {
+      type: "lsl_nc_line",
+      message0: "notecard line",
+      output: "String",
+      colour: CAT.world,
+      tooltip: "Trimmed line text inside a read-notecard hat. Comments and blanks never reach this.",
+    },
+    {
+      type: "lsl_nc_key",
+      message0: "setting key",
+      output: "String",
+      colour: CAT.world,
+      tooltip: "Left of the first =. Empty for a raw line (access lists).",
+    },
+    {
+      type: "lsl_nc_value",
+      message0: "setting value",
+      output: "String",
+      colour: CAT.world,
+      tooltip: "Right of the first =. Whole line if there is no equals.",
+    },
+    {
+      type: "lsl_nc_index",
+      message0: "notecard line number",
+      output: "Integer",
+      colour: CAT.world,
+      tooltip: "0-based index passed to llGetNotecardLine.",
+    },
+    {
+      type: "lsl_nc_ready",
+      message0: "notecard %1 ready",
+      args0: [textField("NAME", "config")],
+      output: "Integer",
+      colour: CAT.world,
+      tooltip: "TRUE after EOF. FALSE while reading or if the notecard was missing. Safe in any event.",
+    },
+    {
+      type: "lsl_nc_if_key",
+      message0: "if setting %1",
+      args0: [textField("KEY", "greeting")],
+      message1: "%1",
+      args1: [{ type: "input_statement", name: "DO" }],
+      previousStatement: null,
+      nextStatement: null,
+      colour: CAT.world,
+      tooltip: "Runs when this line's key matches. Snap set-from-setting inside.",
+    },
+    {
+      type: "lsl_nc_assign",
+      message0: "set %1 from this setting",
+      args0: [
+        {
+          type: "field_variable",
+          name: "VAR",
+          variable: "greeting",
+          variableTypes: ["integer", "float", "string", "key", "vector", "rotation", "list"],
+          defaultType: "string",
+        },
+      ],
+      previousStatement: null,
+      nextStatement: null,
+      colour: CAT.world,
+      tooltip: "Casts the setting value to the variable's type.",
     },
   ];
 
@@ -954,6 +1039,36 @@ export function registerBlocks() {
     String(block.getFieldValue("NAME")),
     Order.ATOMIC,
   ];
+  lslGenerator.forBlock.lsl_notecard_read = () => "";
+  lslGenerator.forBlock.lsl_nc_line = () => ["_nc_raw", Order.ATOMIC];
+  lslGenerator.forBlock.lsl_nc_key = () => ["_nc_key", Order.ATOMIC];
+  lslGenerator.forBlock.lsl_nc_value = () => ["_nc_val", Order.ATOMIC];
+  lslGenerator.forBlock.lsl_nc_index = (block) => {
+    const names = ncGlobalNames(enclosingNotecard(block));
+    return [names.lineVar, Order.ATOMIC];
+  };
+  lslGenerator.forBlock.lsl_nc_ready = (block) => {
+    const names = ncGlobalNames(String(block.getFieldValue("NAME") || "config"));
+    return [names.readyVar, Order.ATOMIC];
+  };
+  lslGenerator.forBlock.lsl_nc_if_key = (block, g) => {
+    const key = lslStringLiteral(String(block.getFieldValue("KEY") || ""));
+    const body = g.statementToCode(block, "DO");
+    return `if (_nc_key == ${key})\n{\n${body}}\n`;
+  };
+  lslGenerator.forBlock.lsl_nc_assign = (block) => {
+    const name = varName(block);
+    const field = block.getField("VAR") as Blockly.FieldVariable | null;
+    const t = field?.getVariable()?.getType() || "string";
+    let rhs = "_nc_val";
+    if (t === "integer") rhs = "(integer)_nc_val";
+    else if (t === "float") rhs = "(float)_nc_val";
+    else if (t === "key") rhs = "(key)_nc_val";
+    else if (t === "vector") rhs = "(vector)_nc_val";
+    else if (t === "rotation") rhs = "(rotation)_nc_val";
+    else if (t === "list") rhs = "llCSV2List(_nc_val)";
+    return `${name} = ${rhs};\n`;
+  };
 
   const constTypes = [
     "lsl_const_bool",
@@ -994,6 +1109,18 @@ function constBlock(
     colour: CAT.constant,
     tooltip: options.map(([, v]) => v).join(", "),
   };
+}
+
+
+function enclosingNotecard(block: Block): string {
+  let p: Block | null = block;
+  while (p) {
+    if (p.type === "lsl_notecard_read") {
+      return String(p.getFieldValue("NAME") || "config");
+    }
+    p = p.getSurroundParent() ?? p.getParent();
+  }
+  return "config";
 }
 
 function varName(block: Block): string {

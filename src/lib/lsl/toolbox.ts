@@ -102,7 +102,17 @@ export function buildToolbox() {
         ...fnItems("sensing"),
         block("lsl_param"),
       ]),
-      cat("World", CAT.world, fnItems("world")),
+      cat("World", CAT.world, [
+        block("lsl_notecard_read", undefined, { NAME: "config", STATE: "default" }),
+        block("lsl_nc_if_key", undefined, { KEY: "greeting" }),
+        block("lsl_nc_assign"),
+        block("lsl_nc_line"),
+        block("lsl_nc_key"),
+        block("lsl_nc_value"),
+        block("lsl_nc_index"),
+        block("lsl_nc_ready", undefined, { NAME: "config" }),
+        ...fnItems("world"),
+      ]),
       cat("Operators", CAT.operator, [
         block("lsl_arithmetic", { A: num1, B: num1 }),
         block("lsl_compare", { A: num0, B: num0 }),

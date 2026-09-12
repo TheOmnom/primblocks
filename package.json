@@ -1,7 +1,7 @@
 {
   "name": "primblocks",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Mindstorms-style brick editor that compiles to LSL for Second Life",
   "scripts": {
@@ -9,7 +9,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test src/lib/lsl/assemble.test.ts src/lib/lsl/types.test.ts",
+    "test": "node --experimental-strip-types --test src/lib/lsl/assemble.test.ts src/lib/lsl/types.test.ts src/lib/lsl/notecard.test.ts",
     "catalog": "node --experimental-strip-types scripts/write-catalog.ts"
   },
   "dependencies": {

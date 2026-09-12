@@ -23,7 +23,7 @@ Screenshots of the current chrome: [SCREENSHOTS.md](SCREENSHOTS.md).
 
    If `llOwnerSay` is missing, the next-block chain (`scrub_`) is broken again.
 
-2. **Paste the six examples into a prim.** Expected output is in [EXAMPLES.md](EXAMPLES.md). Door is the one that usually bites: two states, `llEuler2Rot(... * DEG_TO_RAD)`, hover text on `state_entry`, listens/timers must be re-armed after a state change (door doesn't use those).
+2. **Paste the seven examples into a prim.** Expected output is in [EXAMPLES.md](EXAMPLES.md). Notecard greeter needs a matching note named `config` in the same prim. Door is the one that usually bites: two states, `llEuler2Rot(... * DEG_TO_RAD)`, hover text on `state_entry`, listens/timers must be re-armed after a state change (door doesn't use those).
 
 3. **Generator rules that are easy to get wrong** — list below. Most of the "is this legal LSL?" questions land in `assemble.ts` + `blocks.ts`.
 
@@ -40,6 +40,7 @@ Screenshots of the current chrome: [SCREENSHOTS.md](SCREENSHOTS.md).
 | `for (integer i = 0; …)` is **illegal**. Repeat brick emits `integer _i_…; for (_i_ = 0; …)` | `blocks.ts` `lsl_repeat` |
 | Brick label order ≠ call order. `llSay` brick is "say MSG on channel CHANNEL" but emits `llSay(CHANNEL, MSG)` | `FnDef.order` in `functions.ts` |
 | Duplicate event in the same state is dropped (LSL allows one handler) | `generator.ts` `seenEvent` |
+| Notecard reader merges into `state_entry` / `dataserver` / `changed` instead of emitting a fake event | `notecard-gen.ts` `applyReadersToStates` |
 | Float literals always have a `.0` so they stay floats (`1` vs `1.0`) | `lsl_float` |
 | Euler brick is degrees in, `llEuler2Rot(v * DEG_TO_RAD)` out | `lsl_euler_rot` |
 | Listens, sensors, timers die on state change. Editor warns. It does **not** auto-insert a `state_entry` re-arm | `validate.ts` / Guide |
@@ -77,9 +78,12 @@ src/lib/lsl/limits.ts      forced delays + in-world caps
 src/lib/lsl/types.ts       snap legality
 src/lib/lsl/checker.ts     connection checker (refuses illegal snaps)
 src/lib/lsl/toolbox.ts     flyout categories
-src/lib/lsl/examples.ts    the six bundled scripts
+src/lib/lsl/notecard.ts    notecard format, 255-byte inspect, presets
+src/lib/lsl/notecard-gen.ts  start fn + dataserver merge
+src/lib/lsl/examples.ts    the seven bundled scripts
 src/lib/lsl/engine.ts      inject Blockly, persist hooks
-src/components/block-editor.tsx   chrome (examples / guide / copy)
+src/components/block-editor.tsx   chrome (examples / notecard / guide / copy)
+src/components/notecard-editor.tsx  inventory notecard builder
 src/components/code-panel.tsx     highlighted LSL + copy/download
 ```
 
@@ -92,8 +96,8 @@ Not pretending these are done:
 - **No jump / label bricks.** LSL has `jump` / `@label`. Use raw LSL.
 - **State change inside a user function** is not blocked at snap time.
 - **Particle brick is one explode preset**, plus an off brick. Full PSYS editor is not here — dump a list into `llParticleSystem`.
-- **No cloud save.** localStorage only (`primblocks.workspace.v1`).
-- **No in-world compile.** Copy/paste is the loop.
+- **No cloud save.** localStorage only (`primblocks.workspace.v1`, `primblocks.notecard.v1`).
+- **No in-world compile.** Copy/paste is the loop. Notecard greeter is the one I actually structured like a real object (script + note in the same prim).
 - **`llSetLinkPrimitiveParamsFast` is a list dump**, not a PRIM_* builder UI.
 
 If you want those, file it on `dev`. Don't "complete the wiki" in one pass — the table is already large.

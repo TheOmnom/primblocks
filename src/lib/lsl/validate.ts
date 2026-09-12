@@ -16,6 +16,7 @@ import {
 import {
   ancestorEvent,
   ancestorFunction,
+  ancestorNotecard,
   eachStatement,
   eventIdFromType,
   eventParams,
@@ -29,6 +30,16 @@ export type Diagnostic = LimitHit & {
 };
 
 const FN_BY_TYPE = new Map(LSL_FUNCTIONS.map((f) => [f.type, f]));
+
+const NC_LINE_TYPES = new Set([
+  "lsl_nc_line",
+  "lsl_nc_key",
+  "lsl_nc_value",
+  "lsl_nc_index",
+  "lsl_nc_if_key",
+  "lsl_nc_assign",
+]);
+const NC_TOP_OK = new Set(["lsl_function", "lsl_notecard_read"]);
 
 function bagFor(block: Block): Record<string, { number?: number; string?: string; constName?: string }> {
   const out: Record<string, { number?: number; string?: string; constName?: string }> = {};
@@ -171,6 +182,7 @@ function loopBody(block: Block, out: Diagnostic[]) {
 export function validateWorkspace(workspace: Workspace): Diagnostic[] {
   const out: Diagnostic[] = [];
   const seenEvent = new Set<string>();
+  const seenNc = new Set<string>();
 
   for (const block of workspace.getAllBlocks(false)) {
     if (block.isShadow?.() || block.isInsertionMarker?.()) continue;
@@ -288,6 +300,46 @@ export function validateWorkspace(workspace: Workspace): Diagnostic[] {
       }
     }
 
+    if (block.type === "lsl_notecard_read") {
+      const state = String(block.getFieldValue("STATE") || "default").trim() || "default";
+      const name = String(block.getFieldValue("NAME") || "config").trim() || "config";
+      const key = `${state}::nc::${name}`;
+      if (seenNc.has(key)) {
+        push(out, block, {
+          severity: "error",
+          kind: "rule",
+          message: `Duplicate read-notecard “${name}” in state ${state}. One reader per name per state — extras are dropped.`,
+        });
+      }
+      seenNc.add(key);
+      push(out, block, {
+        severity: "warning",
+        kind: "delay",
+        message: `llGetNotecardLine sleeps 0.1s per line. Do not change state while it is reading — that clears the event queue and drops the rest of the card.`,
+      });
+      let jumps = false;
+      for (const input of ["DO", "DONE", "MISSING"] as const) {
+        eachStatement(block.getInputTargetBlock(input), (b) => {
+          if (b.type === "lsl_state_change") jumps = true;
+        });
+      }
+      if (jumps) {
+        push(out, block, {
+          severity: "error",
+          kind: "rule",
+          message: "Changing state from a notecard reader clears the dataserver queue. Finish the read, then change state from another event.",
+        });
+      }
+    }
+
+    if (NC_LINE_TYPES.has(block.type) && !ancestorNotecard(block)) {
+      push(out, block, {
+        severity: "error",
+        kind: "rule",
+        message: "Notecard line / setting bricks only work inside a read-notecard hat. “notecard ready” can sit in any event.",
+      });
+    }
+
     if (eventIdFromType(block.type)) {
       const state = String(block.getFieldValue("STATE") || "default").trim() || "default";
       const key = `${state}::${eventIdFromType(block.type)}`;
@@ -320,7 +372,7 @@ export function validateWorkspace(workspace: Workspace): Diagnostic[] {
     if (
       !block.outputConnection &&
       !eventIdFromType(block.type) &&
-      block.type !== "lsl_function" &&
+      !NC_TOP_OK.has(block.type) &&
       !block.getParent() &&
       (block.previousConnection || block.nextConnection)
     ) {

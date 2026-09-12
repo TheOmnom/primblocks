@@ -17,8 +17,9 @@ functions.ts       types.ts           functions.ts order[]
 2. `mountWorkspace()` injects Zelos, the custom connection checker, and the Variables flyout callback.
 3. On every non-UI change, `analyzeWorkspace()` runs `generateLsl()` + `validateWorkspace()`.
 4. `generateLsl()` walks **top blocks only**:
-   - typed variables → globals
+   - typed variables → globals (empty-type Blockly leftovers are skipped)
    - `lsl_function` → functions
+   - `lsl_notecard_read` → not an LSL event. Collects reader specs, emits `nc_start_*()` + globals, then `applyReadersToStates()` **prepends** into existing `state_entry` / `dataserver` / `changed` (LSL allows one handler per event)
    - `lsl_event_*` → grouped by the STATE field
    - stray comments / raw bricks at the top level are ignored (note in the header)
 5. `assembleScript()` prints the compilation unit. `default` is created empty if missing.
@@ -53,15 +54,18 @@ LSL's own type names (`integer`, `float`, …) are used for variables and casts.
 
 ## Control bricks that are not ll*
 
-In `blocks.ts`: if / if-else / while / do-while / repeat / forever / state change / return / comment / raw / user function / vars / lists / casts / arithmetic / particles preset / glow / fullbright / point light / named color / event-param reader.
+In `blocks.ts`: if / if-else / while / do-while / repeat / forever / state change / return / comment / raw / user function / vars / lists / casts / arithmetic / particles preset / glow / fullbright / point light / named color / event-param reader / notecard reader + line/key/value/ready bricks.
 
 Repeat is the only one that invents a local. The ident is derived from the block id so two repeats in one event do not collide.
+
+Notecard format + LSL merge live in `notecard.ts` / `notecard-gen.ts`. The hat is a composite. Do not add a second `dataserver` brick for the same card — the generator already emits that handler.
 
 ## Persistence
 
 ```
 primblocks.workspace.v1    Blockly serialization JSON
 primblocks.scriptName.v1   filename for download
+primblocks.notecard.v1     Notecard panel document (name + rows)
 ```
 
 Clear site data if an old workspace schema starts throwing on load — `loadState` falls back to the greeter example.
@@ -71,6 +75,6 @@ Clear site data if an old workspace schema starts throwing on load — `loadStat
 Node built-in test runner, TypeScript via `--experimental-strip-types`.
 
 - `assemble.test.ts` — default-first, globals/functions/states order, no `void`, identifier sanitize, string escapes
-- `types.test.ts` — promotions, illegal arithmetic, assignment checks, a couple of `inspectCall` delay/limit hits
+- `notecard.test.ts` — format round-trip, 255-byte cap, NAK/EOF start function, merge does not duplicate `state_entry`
 
 There is no Blockly-in-jsdom test. Example LSL is reviewed by loading the example in the editor (or reading `examples.ts`).

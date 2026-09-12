@@ -14,6 +14,10 @@ Captured against the standalone Vite app at 1440×900 (desktop) and 390×844 (ph
 | --- | --- | --- |
 | ![Listen](screenshots/editor-listen.png) | ![Dialog](screenshots/editor-dialog.png) | ![Sensor](screenshots/editor-sensor.png) |
 
+| Notecard greeter |
+| --- |
+| ![Notecard](screenshots/editor-notecard.png) |
+
 What to check in those:
 
 - **Greeter** — `touch_start` hat, `llSay` + `llOwnerSay` stacked, no missing next-block.
@@ -22,12 +26,17 @@ What to check in those:
 - **Listen** — owner-filtered `llListen`, `if` / `else if` on `spin` / `stop`.
 - **Dialog** — `llDialog` 1s delay warning in the panel. Still compiles.
 - **Sensor** — `llSensorRepeat` 8 m / `AGENT` / `PI`, `sensor` event.
+- **Notecard** — World hat (not a real LSL event). Panel on the right has `nc_start_config`, `dataserver` NAK/EOF, `CHANGED_INVENTORY`, `touch_start` gated on `nc_ready_config`. Pair with the Notecard dialog.
 
 ## Dialogs
 
-| Examples | Guide | Create variable |
-| --- | --- | --- |
-| ![Examples](screenshots/dialog-examples.png) | ![Guide](screenshots/dialog-guide.png) | ![Variable](screenshots/dialog-variable.png) |
+| Examples | Guide |
+| --- | --- |
+| ![Examples](screenshots/dialog-examples.png) | ![Guide](screenshots/dialog-guide.png) |
+
+| Create variable | Notecard builder |
+| --- | --- |
+| ![Variable](screenshots/dialog-variable.png) | ![Notecard](screenshots/dialog-notecard.png) |
 
 ## Toolbox flyouts
 

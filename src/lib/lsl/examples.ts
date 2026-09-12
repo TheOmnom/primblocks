@@ -1,5 +1,6 @@
 export type ExampleId =
   | "greeter"
+  | "notecard"
   | "door"
   | "listen"
   | "counter"
@@ -69,6 +70,29 @@ function wrap(blocks: object[], variables?: { name: string; type: string; id: st
   return state;
 }
 
+function getVar(id: string, name: string, type: string) {
+  return { type: "lsl_get_var", fields: { VAR: { id, name, type } } };
+}
+
+function ncAssign(varId: string, name: string, type: string, next?: object) {
+  const block: Record<string, unknown> = {
+    type: "lsl_nc_assign",
+    fields: { VAR: { id: varId, name, type } },
+  };
+  if (next) block.next = { block: next };
+  return block;
+}
+
+function ncIfKey(key: string, inner: object, next?: object) {
+  const block: Record<string, unknown> = {
+    type: "lsl_nc_if_key",
+    fields: { KEY: key },
+    inputs: { DO: { block: inner } },
+  };
+  if (next) block.next = { block: next };
+  return block;
+}
+
 export const EXAMPLES: Example[] = [
   {
     id: "greeter",
@@ -86,6 +110,68 @@ export const EXAMPLES: Example[] = [
         ),
       ),
     ]),
+  },
+  {
+    id: "notecard",
+    title: "Notecard greeter",
+    blurb: "Reads a config notecard in the same prim (inventory check, dataserver, EOF, NAK, reload on CHANGED_INVENTORY). Touch says the greeting once the card is ready. Pair with the Notecard panel.",
+    state: wrap(
+      [
+        {
+          type: "lsl_notecard_read",
+          x: 40,
+          y: 20,
+          fields: { NAME: "config", STATE: "default", RELOAD: true },
+          inputs: {
+            DO: {
+              block: ncIfKey(
+                "greeting",
+                ncAssign("var_greeting", "greeting", "string"),
+                ncIfKey("channel", ncAssign("var_channel", "channel", "integer")),
+              ),
+            },
+            DONE: {
+              block: ownerSay("Config loaded.", {
+                type: "lsl_fn_llSetText",
+                inputs: {
+                  TEXT: { block: getVar("var_greeting", "greeting", "string") },
+                  COLOR: { shadow: { type: "lsl_color_named", fields: { COL: "<1.000, 1.000, 1.000>" } } },
+                  ALPHA: { shadow: { type: "lsl_float", fields: { NUM: 1 } } },
+                },
+              }),
+            },
+            MISSING: {
+              block: ownerSay('Drop a notecard named "config" into this prim.'),
+            },
+          },
+        },
+        ev(
+          "lsl_event_touch_start",
+          40,
+          420,
+          {
+            type: "lsl_ifelse",
+            inputs: {
+              COND: { block: { type: "lsl_nc_ready", fields: { NAME: "config" } } },
+              DO: {
+                block: {
+                  type: "lsl_fn_llSay",
+                  inputs: {
+                    MSG: { block: getVar("var_greeting", "greeting", "string") },
+                    CHANNEL: { block: getVar("var_channel", "channel", "integer") },
+                  },
+                },
+              },
+              ELSE: { block: say("Still reading the notecard…", 0) },
+            },
+          },
+        ),
+      ],
+      [
+        { name: "greeting", type: "string", id: "var_greeting" },
+        { name: "channel", type: "integer", id: "var_channel" },
+      ],
+    ),
   },
   {
     id: "door",
