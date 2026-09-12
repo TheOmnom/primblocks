@@ -1,12 +1,10 @@
 # Review notes
 
-Read this first. Then poke the editor, then the generator, then the catalog.
-
-This is a working 0.1.0, not a claim that every LSL quirk is handled. The wiki was the spec. A live Mono/Luau compile in-world is the real test — I did not run these against a sim.
+Working `0.2.0`. Wiki was the spec; I have not pasted every example into a live sim yet. Do that before you trust a brick.
 
 Screenshots of the current chrome: [SCREENSHOTS.md](SCREENSHOTS.md).
 
-## Order to look at things
+## Where to start
 
 1. **Does it boot?** `npm install && npm run dev`. Examples → Touch greeter. Right panel should be:
 
@@ -100,11 +98,11 @@ Not pretending these are done:
 - **No in-world compile.** Copy/paste is the loop. Notecard greeter is the one I actually structured like a real object (script + note in the same prim).
 - **`llSetLinkPrimitiveParamsFast` is a list dump**, not a PRIM_* builder UI.
 
-If you want those, file it on `dev`. Don't "complete the wiki" in one pass — the table is already large.
+If you want those, file it on `dev`. Don't try to finish the wiki in one pass — the table is already large.
 
 ## How to verify a change
 
-```bat
+```
 npm test
 npm run typecheck
 npm run catalog

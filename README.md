@@ -44,18 +44,18 @@ Warnings + phone:
 
 Full set (every flyout, every example, guide, variable dialog): [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md).
 
-_Refresh these under `docs/screenshots/` when user-visible UI changes promote (or when Overlord asks)._
+Re-capture under `docs/screenshots/` if the chrome changes.
 
 ## Quick start
 
-```bat
+```
 npm install
 npm run dev
 ```
 
 Opens on port 5173. Copy the script → in SL: Build → Script → New Script → replace the stub → Save.
 
-```bat
+```
 npm test
 npm run typecheck
 ```
@@ -74,21 +74,21 @@ Details: [docs/LSL.md](docs/LSL.md). Code map: [docs/ARCHITECTURE.md](docs/ARCHI
 
 | File | What |
 |---|---|
-| [docs/REVIEW.md](docs/REVIEW.md) | Review order, easy-to-break generator rules, known gaps |
+| [docs/REVIEW.md](docs/REVIEW.md) | Where to start, easy-to-break generator rules, known gaps |
 | [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md) | Full screenshot gallery |
 | [docs/LSL.md](docs/LSL.md) | LSL rules this editor actually encodes |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Files, generator pipeline, adding a brick |
 | [docs/CATALOG.md](docs/CATALOG.md) | Event + ll* table generated from source (`npm run catalog`) |
-| [docs/EXAMPLES.md](docs/EXAMPLES.md) | The six bundled scripts and what they should emit |
+| [docs/EXAMPLES.md](docs/EXAMPLES.md) | The bundled scripts and what they should emit |
 | [docs/EXTENDING.md](docs/EXTENDING.md) | How to add an ll* brick without touching the generator by hand |
 
 ## Branching
 
-- **`dev`** — day-to-day work (this dump lives here).
-- **`main`** — only when you say **promote**.
+- **`dev`** — working branch (default). Editor, catalog, docs.
+- **`main`** — last snapshot I was willing to paste into a prim.
 
 See [BRANCHING.md](BRANCHING.md).
 
 ## License / notes
 
-Personal / local use. Early `0.1.0` track — catalog is not every ll* on the wiki. Hover a brick for the wiki signature. Forced delays and in-world caps warn; they still compile because the simulator is what actually sleeps / clamps.
+Personal / local use. `0.2.0` — catalog is not every ll* on the wiki. Hover a brick for the wiki signature. Forced delays and in-world caps warn; they still compile because the simulator is what actually sleeps / clamps.

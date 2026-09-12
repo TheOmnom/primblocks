@@ -1,8 +1,8 @@
 # Screenshots
 
-Refresh these under `docs/screenshots/` when user-visible UI changes promote (or when Overlord asks).
+Grabbed from the Vite app at 1440×900 (desktop) and 390×844 (phone). Left toolbox is Blockly flyouts; the right column is live LSL.
 
-Captured against the standalone Vite app at 1440×900 (desktop) and 390×844 (phone). Blockly flyouts are the left toolbox; the right column is live LSL.
+Re-capture these if the chrome changes.
 
 ## Editor — bundled examples
 
