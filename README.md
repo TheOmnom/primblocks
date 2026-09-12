@@ -23,21 +23,27 @@ Second Life / LSL are Linden Lab trademarks. This is not affiliated with Linden 
 
 ## Screenshots
 
-Editor with the touch greeter loaded:
+Editor (desktop):
 
-![Greeter](docs/screenshots/greeter.png)
+| Greeter | Door | Timer |
+| --- | --- | --- |
+| ![Greeter](docs/screenshots/editor-greeter.png) | ![Door](docs/screenshots/editor-door.png) | ![Counter](docs/screenshots/editor-counter.png) |
 
-Events flyout (yellow hats, state field):
+Toolbox (Events / Chat / Looks):
 
-![Events](docs/screenshots/events.png)
+| Events | Chat | Looks |
+| --- | --- | --- |
+| ![Events](docs/screenshots/flyout-events.png) | ![Chat](docs/screenshots/flyout-chat.png) | ![Looks](docs/screenshots/flyout-looks.png) |
 
-Two-state door:
+Warnings + phone:
 
-![Door](docs/screenshots/door.png)
+| Timer too fast | Dialog delay | Phone LSL sheet |
+| --- | --- | --- |
+| ![Timer warn](docs/screenshots/warn-timer.png) | ![Dialog warn](docs/screenshots/warn-dialog.png) | ![Mobile LSL](docs/screenshots/mobile-lsl.png) |
 
-In-editor guide:
+Full set (every flyout, every example, guide, variable dialog): [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md).
 
-![Guide](docs/screenshots/guide.png)
+_Refresh these under `docs/screenshots/` when user-visible UI changes promote (or when Overlord asks)._
 
 ## Quick start
 
@@ -68,6 +74,7 @@ Details: [docs/LSL.md](docs/LSL.md). Code map: [docs/ARCHITECTURE.md](docs/ARCHI
 | File | What |
 |---|---|
 | [docs/REVIEW.md](docs/REVIEW.md) | Review order, easy-to-break generator rules, known gaps |
+| [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md) | Full screenshot gallery |
 | [docs/LSL.md](docs/LSL.md) | LSL rules this editor actually encodes |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Files, generator pipeline, adding a brick |
 | [docs/CATALOG.md](docs/CATALOG.md) | Event + ll* table generated from source (`npm run catalog`) |

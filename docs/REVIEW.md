@@ -4,6 +4,8 @@ Read this first. Then poke the editor, then the generator, then the catalog.
 
 This is a working 0.1.0, not a claim that every LSL quirk is handled. The wiki was the spec. A live Mono/Luau compile in-world is the real test — I did not run these against a sim.
 
+Screenshots of the current chrome: [SCREENSHOTS.md](SCREENSHOTS.md).
+
 ## Order to look at things
 
 1. **Does it boot?** `npm install && npm run dev`. Examples → Touch greeter. Right panel should be:
