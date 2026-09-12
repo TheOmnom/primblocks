@@ -1,0 +1,145 @@
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0c0d10;
+  --color-surface: #15161c;
+  --color-surface-2: #1c1e26;
+  --color-fg: #eceae4;
+  --color-muted: #8b8e99;
+  --color-accent: #4aa89c;
+  --color-accent-fg: #0c0d10;
+  --color-border: #2a2c34;
+  --color-ring: #4aa89c;
+  --color-brick: #c9a227;
+  --color-warn: #c9a227;
+  --color-danger: #d45b4a;
+  --color-code-bg: #0a0b0e;
+  --color-code-string: #c4a574;
+  --color-code-keyword: #d46a2a;
+  --color-code-type: #4aa89c;
+  --color-code-event: #c9a227;
+  --color-code-func: #7eb0d4;
+  --color-code-const: #9aa3b5;
+  --color-code-number: #c9a227;
+  --font-sans: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --radius: 0.75rem;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --motion-quick: 150ms;
+  --motion-fast: 250ms;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+/* Blockly lives outside the design-system; keep it readable and un-crushed. */
+.blocklySvg {
+  background: transparent !important;
+}
+
+.blocklyMainBackground {
+  stroke: none !important;
+}
+
+.blocklyToolboxDiv {
+  background: var(--color-surface) !important;
+  border-right: 1px solid var(--color-border);
+  width: 7.5rem;
+  overflow-x: hidden;
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.blocklyTreeRow {
+  height: auto !important;
+  padding: 8px 10px !important;
+  margin: 2px 6px !important;
+  border-radius: 8px;
+}
+
+.blocklyTreeLabel {
+  font-family: var(--font-sans) !important;
+  color: var(--color-fg) !important;
+}
+
+.blocklyFlyoutBackground {
+  fill: #1c1f28 !important;
+  fill-opacity: 0.98 !important;
+}
+
+.blocklyWidgetDiv,
+.blocklyDropDownDiv,
+.blocklyTooltipDiv {
+  font-family: var(--font-sans);
+  z-index: 40;
+}
+
+.blocklyTooltipDiv {
+  background: var(--color-surface-2) !important;
+  color: var(--color-fg) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  max-width: 22rem;
+  white-space: pre-wrap !important;
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+}
+
+.blocklyZoom > image,
+.blocklyTrash > image {
+  opacity: 0.7;
+}
+
+.blocklyScrollbarHandle {
+  fill: #3a3d4a !important;
+}
+
+@media (max-width: 767px) {
+  .blocklyToolboxDiv {
+    width: 5.75rem;
+  }
+
+  .blocklyTreeLabel {
+    font-size: 11px !important;
+  }
+}
