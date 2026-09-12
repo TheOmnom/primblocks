@@ -11,8 +11,7 @@ Second Life / LSL are Linden Lab trademarks. This is not affiliated with Linden 
 ## Not a programmer?
 
 You do not install Node. You download **one file** from
-[Releases](https://github.com/TheOmnom/primblocks/releases)
-(log into GitHub first — this repo is private).
+[Releases](https://github.com/TheOmnom/primblocks/releases).
 
 | I use… | Download this |
 | --- | --- |

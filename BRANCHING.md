@@ -1,10 +1,8 @@
 # Branching
 
-Private repo, just me.
+**dev** is the branch I actually work on. Editor, LSL catalog, generator, docs, screenshots — all of it. Desktop CI still *builds* the Windows/Mac/Linux files on `dev` so I can download the artifacts and click through them. It does not publish a Release.
 
-**dev** is the default branch and the one I actually work on. Editor, LSL catalog, generator, docs, screenshots — all of it. Desktop CI still *builds* the Windows/Mac/Linux files on `dev` so I can download the artifacts and click through them. It does not publish a Release.
-
-**main** is a snapshot of “this compiled in a prim and I didn’t hate it.” Pushing `main` tags `v0.2.0` (or whatever is in `package.json`) and uploads:
+**main** is the GitHub default and the snapshot of “this compiled in a prim and I didn’t hate it.” Pushing `main` tags `v0.2.0` (or whatever is in `package.json`) and uploads:
 
 - `PrimBlocks-Setup.exe`
 - `PrimBlocks-windows.zip`
@@ -33,7 +31,7 @@ CI:
 
 ## Why two branches
 
-Same idea as the sorter repo. `dev` can be half-broken bricks and a catalog row I haven’t pasted yet. `main` should be something I could send someone without a disclaimer. Until I promote, a fresh clone of the default branch (`dev`) is the latest.
+Same idea as the sorter repo. `dev` can be half-broken bricks and a catalog row I haven’t pasted yet. `main` should be something I could send someone without a disclaimer. Until I promote, a fresh clone of `dev` is the latest working tree. Clone of `main` (GitHub default) is the last Release.
 
 ## Running it
 
