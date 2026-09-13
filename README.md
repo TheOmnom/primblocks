@@ -2,7 +2,7 @@
 
 Snap LSL together from puzzle bricks, then paste a real Second Life script into a prim.
 
-**Version:** `0.2.5`
+**Version:** `0.2.6`
 
 Yellow hats are events. Colored bricks stack under them. The panel on the right is the compiled `.lsl` — not a sketch.
 
@@ -102,7 +102,7 @@ Details: [docs/LSL.md](docs/LSL.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md
 
 | File | What |
 |---|---|
-| [CHANGELOG.md](CHANGELOG.md) | What changed in 0.2.5 |
+| [CHANGELOG.md](CHANGELOG.md) | What changed in 0.2.6 |
 | [packaging/GETTING_STARTED.txt](packaging/GETTING_STARTED.txt) | Which file to download, then what to click |
 | [packaging/README.md](packaging/README.md) | How the Release is built |
 | [docs/REVIEW.md](docs/REVIEW.md) | Where to start, easy-to-break generator rules, known gaps |
@@ -122,4 +122,4 @@ See [BRANCHING.md](BRANCHING.md).
 
 ## License / notes
 
-Personal / local use. `0.2.5` — catalog is not every ll* on the wiki. Hover a brick for the wiki signature. Forced delays and in-world caps warn; they still compile because the simulator is what actually sleeps / clamps.
+Personal / local use. `0.2.6` — catalog is not every ll* on the wiki. Hover a brick for the wiki signature. Forced delays and in-world caps warn; they still compile because the simulator is what actually sleeps / clamps.

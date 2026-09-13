@@ -56,16 +56,19 @@ export function mountWorkspace(host: HTMLElement, handlers: EngineHandlers): Blo
       connectionChecker: LslConnectionChecker,
     },
     grid: { spacing: 20, length: 2, colour: "#2a2d38", snap: true },
+    // Wheel zooms toward the cursor. Drag empty grid to pan.
+    // Scrollbars stay on for metrics; CSS hides the gray strip they draw.
     zoom: {
       controls: true,
       wheel: true,
       startScale: 0.85,
-      maxScale: 1.6,
-      minScale: 0.4,
+      maxScale: 2.5,
+      minScale: 0.3,
+      scaleSpeed: 1.2,
       pinch: true,
     },
     trashcan: true,
-    move: { scrollbars: true, drag: true, wheel: true },
+    move: { scrollbars: true, drag: true, wheel: false },
     oneBasedIndex: false,
     toolboxPosition: "start",
     horizontalLayout: false,

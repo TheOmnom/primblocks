@@ -1,18 +1,18 @@
 # Changes
 
-## Unreleased (dev)
+## 0.2.6
 
-Toolbar talks to GitHub on launch. If you're current it shows `v0.2.5`. If a newer tag is out, that slot becomes **New Version Available** and **Update now** (the installer for this OS). Click the version number to check again.
+Mouse wheel on the brick grid zooms. It used to pan, which made the canvas keep growing and left a gray scrollbar hanging in the middle of the workspace. Drag empty space to pan. The + / − in the corner still work. Flyout lists still scroll if a category is long.
 
-Color dialog actually loads — `llListen` is a statement now (LSL allows throwing away the handle). Notecard / counter examples no longer come in empty: a get-var brick whose variable isn't bound yet accepts every type during load, then tightens.
+Also in this one (was sitting on `dev`):
 
-New examples, with a difficulty label:
+- Toolbar talks to GitHub on launch. Current build shows `v0.2.6`. Newer tag → **New Version Available**.
+- Color dialog actually loads — `llListen` is a statement now (LSL lets you throw away the handle).
+- Notecard / counter examples no longer come in empty.
+- Wired greeter / wired sensor / wired name + key examples.
+- Tutorials start empty and will not enable Next until the brick is actually there.
 
-- **Wired greeter** (intermediate) — two groups, cable `who`, noodle, compiles to `string cbl_who`
-- **Wired sensor** (advanced) — same cable inside a `sensor` hat
-- **Wired name + key** (expert) — two noodles, `who` (string) and `id` (key), `llRegionSayTo`
-
-Tutorials start on an empty workspace and will not enable Next until the brick they asked for is actually there. Checklist of steps, toolbox opens to the right category.
+No new ll* calls. Forced delays and snap rules are the same.
 
 ## 0.2.5
 

@@ -96,7 +96,10 @@ describe("checkForUpdate", () => {
     const s = await checkForUpdate({ current: APP_VERSION });
     assert.ok(s.kind === "current" || s.kind === "available" || s.kind === "unknown", s.kind);
     if (s.kind === "current") {
-      assert.equal(s.latest, APP_VERSION);
+      assert.ok(
+        compareVersions(APP_VERSION, s.latest) >= 0,
+        `current ${APP_VERSION} should be at least GitHub ${s.latest}`,
+      );
     }
     if (s.kind === "available") {
       assert.equal(compareVersions(s.latest, APP_VERSION) > 0, true);

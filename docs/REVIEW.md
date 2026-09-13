@@ -1,6 +1,6 @@
 # Review notes
 
-Working `0.2.5`. Wiki was the spec; I have not pasted every example into a live sim yet. Do that before you trust a brick.
+Working `0.2.6`. Wiki was the spec; I have not pasted every example into a live sim yet. Do that before you trust a brick.
 
 Screenshots of the current chrome: [SCREENSHOTS.md](SCREENSHOTS.md).
 

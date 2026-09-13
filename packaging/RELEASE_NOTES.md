@@ -1,4 +1,4 @@
-PrimBlocks 0.2.5
+PrimBlocks 0.2.6
 
 Pick **one** file. You do not need Git or Node.
 
@@ -18,6 +18,6 @@ Pick **one** file. You do not need Git or Node.
 
 Then: **Tutorials** (Basic → Hello, Avatar!) or **Examples → Touch greeter → Copy.** In Second Life: right-click a prim → Build → Content → New Script → paste → Save.
 
-0.2.5: named cables between groups (noodles on the workspace), presets, tutorials that walk one brick at a time.
+0.2.6: mouse wheel zooms the brick grid (it used to scroll and leave a gray bar). Drag empty space to pan. Cables, presets, and brick-by-brick tutorials are still there from 0.2.5.
 
 Walkthrough: packaging/GETTING_STARTED.txt in the repo (also inside the Windows zip).

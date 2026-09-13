@@ -351,7 +351,7 @@ export function BlockEditor() {
 
       <div className="flex min-h-0 flex-1">
         <div className="relative min-h-0 min-w-0 flex-1">
-          <div ref={hostRef} className="absolute inset-0" />
+          <div ref={hostRef} className="absolute inset-0 overflow-hidden overscroll-none" />
           {!ready && (
             <div className="absolute inset-0 grid place-items-center bg-bg">
               <p className="text-sm text-muted">Loading bricks…</p>
@@ -421,8 +421,9 @@ export function BlockEditor() {
             <DialogTitle>How PrimBlocks compiles</DialogTitle>
             <DialogDescription>
               Yellow hats are events. Snap commands under them. The panel on the right is real LSL.
-              New here? Open <strong>Tutorials</strong> in the header — it will not let you skip a brick.
-              Cables (toolbox) draw a noodle between matching send/receive names.
+              Mouse wheel zooms the grid; drag empty space to pan. New here? Open{" "}
+              <strong>Tutorials</strong> — it will not let you skip a brick. Cables (toolbox) draw a
+              noodle between matching send/receive names.
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[60vh] space-y-3 overflow-auto text-sm text-pretty">
