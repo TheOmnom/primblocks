@@ -15,6 +15,7 @@ import { NotecardEditor } from "@/components/notecard-editor";
 import { PresetsDialog } from "@/components/presets-dialog";
 import { TutorialCoach } from "@/components/tutorial-coach";
 import { TutorialDialog } from "@/components/tutorial-dialog";
+import { VersionSlot } from "@/components/version-slot";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -304,6 +305,7 @@ export function BlockEditor() {
           className="ml-1 hidden h-8 max-w-48 bg-bg md:block"
         />
         <div className="ml-auto flex items-center gap-1">
+          <VersionSlot />
           <Button variant="ghost" size="sm" onClick={() => setExamplesOpen(true)}>
             <FolderOpen />
             <span className="hidden sm:inline">Examples</span>

@@ -1,5 +1,9 @@
 # Changes
 
+## Unreleased (dev)
+
+Toolbar talks to GitHub on launch. If you're current it shows `v0.2.5`. If a newer tag is out, that slot becomes **New Version Available** and **Update now** (the installer for this OS). Click the version number to check again.
+
 ## 0.2.5
 
 Cables, presets, and tutorials that actually make you put the bricks down.
