@@ -3,6 +3,7 @@ import * as Blockly from "blockly/core";
 import { resolveOutputTypes } from "./resolve";
 import { matchingSends } from "./cables";
 import {
+  ALL_TYPES,
   allowedForOperand,
   arithmeticOutput,
   assignmentChecks,
@@ -15,7 +16,7 @@ import {
 
 function varTypeOf(block: Block): string {
   const field = block.getField("VAR") as Blockly.FieldVariable | null;
-  return field?.getVariable()?.getType() ?? "integer";
+  return field?.getVariable()?.getType() ?? "";
 }
 
 function safeSetCheck(conn: Blockly.Connection | null | undefined, check: string | string[] | null) {
@@ -33,7 +34,9 @@ function patchInit(type: string, apply: (block: Block) => void) {
   const orig = def.init;
   def.init = function (this: Block) {
     orig.call(this);
-    apply(this);
+    // Do not apply() here — FieldVariable / dropdowns still have JSON defaults,
+    // and serialization connects children in the same turn. Tightening now
+    // unplugs legal snaps (string get_var into llSetText, (string) cast, etc.).
     this.setOnChange(function (this: Block) {
       if (this.isDeadOrDying?.() || this.isInsertionMarker?.()) return;
       if ((this.workspace as Blockly.WorkspaceSvg | null)?.isDragging?.()) return;
@@ -49,11 +52,19 @@ function patchInit(type: string, apply: (block: Block) => void) {
 }
 
 function applyGetVar(block: Block) {
-  safeSetCheck(block.outputConnection, varTypeToOutput(varTypeOf(block)));
+  const t = varTypeOf(block);
+  // Unbound / dummy FieldVariable during serialization load — accept every LSL
+  // type so a string get_var can still snap into llSetText. reapplyDynamicTypes
+  // tightens this after the VAR field is bound.
+  safeSetCheck(block.outputConnection, t ? varTypeToOutput(t) : ALL_TYPES);
 }
 
 function applySetVar(block: Block) {
-  safeSetCheck(block.getInput("VALUE")?.connection ?? null, assignmentChecks(varTypeOf(block)));
+  const t = varTypeOf(block);
+  safeSetCheck(
+    block.getInput("VALUE")?.connection ?? null,
+    t ? assignmentChecks(t) : ALL_TYPES,
+  );
 }
 
 function applyChangeVar(block: Block) {
@@ -138,17 +149,46 @@ function applyCableRecv(block: Block) {
   );
 }
 
+const APPLIERS: Record<string, (block: Block) => void> = {
+  lsl_get_var: applyGetVar,
+  lsl_set_var: applySetVar,
+  lsl_change_var: applyChangeVar,
+  lsl_cast: applyCast,
+  lsl_param: applyParam,
+  lsl_component: applyComponent,
+  lsl_paren: applyParen,
+  lsl_negate: applyNegate,
+  lsl_arithmetic: applyArithmetic,
+  lsl_compare: applyCompare,
+  lsl_call_expr: applyCallExpr,
+  lsl_cable_recv: applyCableRecv,
+};
+
+const PRODUCERS = new Set([
+  "lsl_get_var",
+  "lsl_param",
+  "lsl_cast",
+  "lsl_component",
+  "lsl_cable_recv",
+]);
+
 export function installDynamicTypes() {
-  patchInit("lsl_get_var", applyGetVar);
-  patchInit("lsl_set_var", applySetVar);
-  patchInit("lsl_change_var", applyChangeVar);
-  patchInit("lsl_cast", applyCast);
-  patchInit("lsl_param", applyParam);
-  patchInit("lsl_component", applyComponent);
-  patchInit("lsl_paren", applyParen);
-  patchInit("lsl_negate", applyNegate);
-  patchInit("lsl_arithmetic", applyArithmetic);
-  patchInit("lsl_compare", applyCompare);
-  patchInit("lsl_call_expr", applyCallExpr);
-  patchInit("lsl_cable_recv", applyCableRecv);
+  for (const type of Object.keys(APPLIERS)) {
+    patchInit(type, APPLIERS[type]);
+  }
+}
+
+/** Call after serialization load — Events are disabled during load, so onChange never ran.
+ *  Producers first so a later setCheck on a parent socket does not unplug them. */
+export function reapplyDynamicTypes(workspace: Blockly.Workspace) {
+  const blocks = workspace.getAllBlocks(false);
+  for (const block of blocks) {
+    if (PRODUCERS.has(block.type)) APPLIERS[block.type]?.(block);
+  }
+  for (const block of blocks) {
+    if (!PRODUCERS.has(block.type)) APPLIERS[block.type]?.(block);
+  }
+  for (const block of blocks) {
+    if (PRODUCERS.has(block.type)) APPLIERS[block.type]?.(block);
+  }
 }

@@ -150,7 +150,12 @@ export function BlockEditor() {
     const ws = wsRef.current;
     const engine = engineRef.current;
     if (!ex || !ws || !engine) return;
-    engine.loadState(ws, ex.state);
+    try {
+      engine.loadState(ws, ex.state);
+    } catch (err) {
+      toast.error(`Could not load ${ex.title}: ${err instanceof Error ? err.message : String(err)}`);
+      return;
+    }
     setScriptName(ex.title);
     saveScriptName(ex.title);
     if (ex.id === "notecard") {
@@ -175,21 +180,17 @@ export function BlockEditor() {
       scriptName,
       notecard,
     });
-    if (tutorial.exampleId) {
-      loadExample(tutorial.exampleId, true);
-    } else {
-      engine.loadState(ws, engine.EMPTY_WORKSPACE);
-      setScriptName(tutorial.title);
-      saveScriptName(tutorial.title);
-      const analyzed = engine.analyzeWorkspace(ws);
-      setCode(analyzed.code);
-      setDiagnostics(analyzed.diagnostics);
-      persist();
-    }
+    engine.loadState(ws, engine.EMPTY_WORKSPACE, { keepFlyout: true });
+    setScriptName(tutorial.title);
+    saveScriptName(tutorial.title);
+    const analyzed = engine.analyzeWorkspace(ws);
+    setCode(analyzed.code);
+    setDiagnostics(analyzed.diagnostics);
+    persist();
     if (tutorial.openNotecard) setNotecardOpen(true);
     setCoachId(tutorial.id);
     setCoachStep(0);
-    toast.message(tutorial.title);
+    toast.message(`${tutorial.title} — start with the brick it asks for.`);
   }
 
   function quitCoach() {
@@ -216,6 +217,12 @@ export function BlockEditor() {
     const ws = wsRef.current;
     const engine = engineRef.current;
     if (ws && engine) engine.openToolboxCategory(ws, name);
+  }, []);
+
+  const highlightType = useCallback((type: string | undefined) => {
+    const ws = wsRef.current;
+    const engine = engineRef.current;
+    if (ws && engine) engine.highlightType(ws, type);
   }, []);
 
   function handleSavePreset(name: string) {
@@ -355,8 +362,10 @@ export function BlockEditor() {
               tutorial={tutorialById(coachId)!}
               stepIndex={coachStep}
               workspace={wsRef.current}
+              tick={code}
               onStep={setCoachStep}
               onOpenCategory={openCategory}
+              onHighlight={highlightType}
               onQuit={quitCoach}
             />
           )}
@@ -381,7 +390,7 @@ export function BlockEditor() {
           <DialogHeader>
             <DialogTitle>Example scripts</DialogTitle>
             <DialogDescription>
-              Legal LSL, ready to paste. Notecard greeter is the one that needs a matching note in the prim.
+              Legal LSL, ready to paste. Intermediate and up include cable noodles. Notecard greeter needs a matching note in the prim.
             </DialogDescription>
           </DialogHeader>
           <ul className="grid gap-2">
@@ -392,7 +401,12 @@ export function BlockEditor() {
                   onClick={() => loadExample(ex.id)}
                   className="w-full rounded-lg border border-border bg-bg px-3 py-2.5 text-left hover:bg-surface-2"
                 >
-                  <span className="block text-sm font-medium">{ex.title}</span>
+                  <span className="flex items-baseline justify-between gap-2">
+                    <span className="block text-sm font-medium">{ex.title}</span>
+                    <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted">
+                      {ex.level}
+                    </span>
+                  </span>
                   <span className="mt-0.5 block text-xs text-muted">{ex.blurb}</span>
                 </button>
               </li>

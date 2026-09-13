@@ -4,11 +4,11 @@ import type { ExampleId } from "@/lib/lsl/examples";
 export type TutorialLevel = "basic" | "intermediate" | "advanced" | "expert";
 
 export type StepExpect = {
-  type: string;
+  type?: string;
   root?: string;
   field?: { name: string; value: string };
-  /** Shadow / nested literal on a value input */
-  inputField?: { input: string; field: string; value?: string; nonempty?: boolean };
+  inputField?: { input: string; field: string; value?: string; nonempty?: boolean; not?: string };
+  variable?: { name: string };
 };
 
 export type TutorialStep = {
@@ -33,7 +33,7 @@ export type Tutorial = {
 
 export const LEVELS: { id: TutorialLevel; label: string; hint: string }[] = [
   { id: "basic", label: "Basic", hint: "Hats, say, paste into a prim" },
-  { id: "intermediate", label: "Intermediate", hint: "Timers, listens, states, dialogs" },
+  { id: "intermediate", label: "Intermediate", hint: "Timers, dialogs, cables" },
   { id: "advanced", label: "Advanced", hint: "Sensors, notecards, delays" },
   { id: "expert", label: "Expert", hint: "The stuff that fails in-world" },
 ];
@@ -61,6 +61,16 @@ function rootType(block: { getRootBlock: () => { type: string } }): string {
 export function stepSatisfied(workspace: Workspace, step: TutorialStep): boolean {
   const expect = step.expect;
   if (!expect) return true;
+  if (expect.variable) {
+    const want = expect.variable.name.toLowerCase();
+    const hit = workspace
+      .getVariableMap()
+      .getAllVariables()
+      .some((v) => v.getName().toLowerCase() === want);
+    if (!hit) return false;
+    if (!expect.type) return true;
+  }
+  if (!expect.type) return true;
   const blocks = workspace.getAllBlocks(false).filter((b) => {
     if (b.isShadow?.() || b.isInsertionMarker?.()) return false;
     return b.type === expect.type;
@@ -71,11 +81,9 @@ export function stepSatisfied(workspace: Workspace, step: TutorialStep): boolean
     if (expect.field && fieldValue(b, expect.field.name) !== expect.field.value) return false;
     if (expect.inputField) {
       const got = inputLiteral(b, expect.inputField.input, expect.inputField.field);
-      if (expect.inputField.nonempty) {
-        if (!got.trim()) return false;
-      } else if (expect.inputField.value != null && got !== expect.inputField.value) {
-        return false;
-      }
+      if (expect.inputField.nonempty && !got.trim()) return false;
+      if (expect.inputField.value != null && got !== expect.inputField.value) return false;
+      if (expect.inputField.not != null && got === expect.inputField.not) return false;
     }
     return true;
   });
@@ -87,21 +95,21 @@ export const TUTORIALS: Tutorial[] = [
     level: "basic",
     title: "Hello, Avatar!",
     blurb: "Empty workspace. You drop the hat, then two chat bricks, then paste.",
-    minutes: 6,
+    minutes: 8,
     startEmpty: true,
     steps: [
       {
-        title: "The yellow hat",
+        title: "Drop the yellow hat",
         toolbox: "Events",
-        do: "Open Events. Drag touch_start onto the workspace. Leave the state field on default.",
+        do: "Events is open. Drag touch_start onto the empty workspace. Leave the state field on default. Don't snap anything under it yet.",
         why: "A script does nothing until an event fires. touch_start is a click. LSL requires a state named default, and it has to be first in the file — that's why the field exists.",
         expect: { type: "lsl_event_touch_start", field: { name: "STATE", value: "default" } },
       },
       {
         title: "Say it in public",
         toolbox: "Chat",
-        do: "Open Chat. Drag say under the hat until it clicks. Type Hello, Avatar! in the message. Leave the channel at 0.",
-        why: "Channel 0 is Nearby, about 20 metres. That's what people expect from a greeter. Negative channels are for scripts talking to scripts and do not show in chat.",
+        do: "Drag say from Chat. Snap it into the mouth of the hat until it clicks. Type Hello, Avatar! in the message. Leave the channel at 0.",
+        why: "Channel 0 is Nearby, about 20 metres. Negative channels are a script bus and do not show in chat.",
         expect: {
           type: "lsl_fn_llSay",
           root: "lsl_event_touch_start",
@@ -111,36 +119,47 @@ export const TUTORIALS: Tutorial[] = [
       {
         title: "A private confirm",
         toolbox: "Chat",
-        do: "Still in Chat, drag owner-say under the say brick. Type Touched. or whatever you want.",
-        why: "llOwnerSay only the owner hears, and only if you're in the same region. Visitors get the public hello; you get a debug line. That's the usual pair.",
+        do: "Still in Chat, drag owner-say. Snap it under the say brick, not next to the hat. Type Touched. or anything you want.",
+        why: "llOwnerSay only the owner hears, and only in the same region. Visitors get the public hello; you get a debug line. That's the usual pair.",
         expect: { type: "lsl_fn_llOwnerSay", root: "lsl_event_touch_start" },
       },
       {
-        title: "Paste it",
-        do: "Look at the right panel. You should see default { touch_start(integer num_detected) { llSay… llOwnerSay… } }. Copy. In SL: right-click a box → Build → Content → New Script. Select all, paste, Save. Touch the box.",
-        why: "The panel is the compiler output, not a sketch. If default is missing or a second event is sitting on the floor, don't paste.",
+        title: "Paste it in-world",
+        do: "Right panel should show default { touch_start(integer num_detected) { llSay… llOwnerSay… } }. Copy. In SL: right-click a box → Build → Content → New Script. Select all, paste, Save. Touch the box.",
+        why: "The panel is the compiler output, not a sketch. If default is missing or a brick is sitting on the floor, don't paste.",
       },
     ],
   },
   {
     id: "edit-text",
     level: "basic",
-    title: "Change the text and the channel",
-    blurb: "Click a field. Watch the LSL update.",
-    minutes: 4,
-    exampleId: "greeter",
+    title: "Change the text",
+    blurb: "You build a say brick, then click the field. The LSL follows.",
+    minutes: 6,
+    startEmpty: true,
     steps: [
       {
-        title: "The message is a field",
-        do: "The greeter is already loaded. Click Hello, Avatar! on the say brick and type something else. Watch the right panel follow you.",
-        why: "That field is the string literal. No extra quotes — the compiler adds them and escapes for you.",
-        expect: { type: "lsl_fn_llSay" },
+        title: "Hat first",
+        toolbox: "Events",
+        do: "Drag touch_start onto the workspace. State stays default.",
+        why: "Same as last time. Every walkthrough starts empty so you place the brick, not just read about it.",
+        expect: { type: "lsl_event_touch_start", field: { name: "STATE", value: "default" } },
       },
       {
-        title: "Channel 0 vs negative",
-        do: "The channel socket is 0. Leave it, or put -42 if you want this silent to avatars. Don't use llRegionSay on 0 — the editor flags that as an error.",
-        why: "0 = public. Negative = script bus. Region-say on 0 is illegal in LSL, not just rude.",
-        expect: { type: "lsl_fn_llSay" },
+        title: "A say brick",
+        toolbox: "Chat",
+        do: "Drag say under the hat.",
+        why: "The message socket is a string brick. Clicking the text is how you edit — there is no separate properties panel.",
+        expect: { type: "lsl_fn_llSay", root: "lsl_event_touch_start" },
+      },
+      {
+        title: "Type something else",
+        do: "Click the message (probably Hello, Avatar!) and replace it with Hi. Watch the right panel update as you type.",
+        why: "No extra quotes. The compiler adds them and escapes for you. If you type a quote it becomes \\\".",
+        expect: {
+          type: "lsl_fn_llSay",
+          inputField: { input: "MSG", field: "TEXT", not: "Hello, Avatar!" },
+        },
       },
     ],
   },
@@ -149,37 +168,28 @@ export const TUTORIALS: Tutorial[] = [
     level: "basic",
     title: "Hover text over the prim",
     blurb: "Looks → set hover text. Colors are 0–1, not 0–255.",
-    minutes: 5,
-    exampleId: "greeter",
+    minutes: 7,
+    startEmpty: true,
     steps: [
       {
-        title: "Drag from Looks",
+        title: "Hat",
+        toolbox: "Events",
+        do: "Drag touch_start. State default.",
+        why: "Hover text is a command. It has to live under an event or it never runs.",
+        expect: { type: "lsl_event_touch_start" },
+      },
+      {
+        title: "Set hover text",
         toolbox: "Looks",
-        do: "Open Looks. Drag set hover text under the owner-say brick until it clicks.",
+        do: "Looks → set hover text. Snap it under the hat. Type a short label.",
         why: "llSetText lives on the prim until you set it to an empty string. It is not chat. It is a floating label.",
         expect: { type: "lsl_fn_llSetText", root: "lsl_event_touch_start" },
       },
       {
-        title: "Color is a vector",
-        do: "The color socket is a named color brick. White is <1, 1, 1>. If you build your own vector, 255 will look like a blown-out sun — LSL is 0.0 to 1.0.",
-        why: "That's the wiki. Photoshop numbers are the wrong space.",
+        title: "Color is 0 to 1",
+        do: "The color socket is a named color brick (or a vector). White is <1, 1, 1>. If you build your own vector, 255 will look like a blown-out sun.",
+        why: "LSL colors are vectors of 0.0–1.0. Photoshop 255 is the wrong space. That's the wiki, not a style choice.",
         expect: { type: "lsl_fn_llSetText" },
-      },
-    ],
-  },
-  {
-    id: "owner-vs-public",
-    level: "basic",
-    title: "Owner-only vs everyone",
-    blurb: "llOwnerSay is quiet. llSay is 20 m.",
-    minutes: 4,
-    exampleId: "greeter",
-    steps: [
-      {
-        title: "Read the stack",
-        do: "You already have public say + owner say. That's the pattern. Chat also has whisper (10 m), shout (100 m), region-say (whole region, not on channel 0).",
-        why: "llOwnerSay dies if you walk to the next sim. Public say does not care who owns the prim, only range.",
-        expect: { type: "lsl_fn_llOwnerSay" },
       },
     ],
   },
@@ -188,75 +198,43 @@ export const TUTORIALS: Tutorial[] = [
     level: "intermediate",
     title: "Count on a timer",
     blurb: "A typed global, state_entry starts the clock, timer ticks.",
-    minutes: 7,
+    minutes: 10,
     startEmpty: true,
     steps: [
       {
         title: "Make count",
         toolbox: "Variables",
-        do: "Open Variables → Create variable… Name it count, type integer. Then drag set count under a state_entry hat — grab state_entry from Events first, state default.",
-        why: "Variables become globals at the top of the script, integer count = 0. You cannot declare them inside the event in PrimBlocks; that's on purpose, it matches how most SL scripts are written.",
+        do: "Variables → Create variable…. Name it count. Type integer. OK. You should see get count / set count in the flyout.",
+        why: "Variables become globals at the top of the script: integer count = 0; You do not declare them inside the event.",
+        expect: { variable: { name: "count" } },
+      },
+      {
+        title: "state_entry hat",
+        toolbox: "Events",
+        do: "Events → state_entry. State default. That's the hat that runs when the script starts or the prim rezs.",
+        why: "Timers are armed here. If you arm them in touch_start, they don't start until someone clicks.",
         expect: { type: "lsl_event_state_entry", field: { name: "STATE", value: "default" } },
       },
       {
         title: "Start the clock",
         toolbox: "World",
-        do: "World (or look for set timer). Drag set timer event under state_entry. Put 1.0 in the seconds. Not 0.001 — that warns because a sim frame is ~0.022 s.",
+        do: "World → set timer every … seconds. Snap it under state_entry. Put 1 in the seconds. Not 0.001 — that warns because a sim frame is ~0.022 s.",
         why: "llSetTimerEvent(1.0) fires the timer hat every second. 0.0 stops it. Faster than a frame still compiles; the sim will not honor it.",
         expect: { type: "lsl_fn_llSetTimerEvent", root: "lsl_event_state_entry" },
       },
       {
-        title: "The tick",
+        title: "The tick hat",
         toolbox: "Events",
-        do: "Events → timer. Snap change count by 1 under it, then set hover text to (string)count. The cast brick is in Operators. Hover text wants a string; an integer will not snap.",
-        why: "timer() has no parameters. Cast is required — LSL will not stringify for you. That's a compile error if you skip it.",
+        do: "Events → timer. Drop it next to state_entry, not inside it. State default.",
+        why: "timer() has no parameters. It is a separate event. Two hats, one script.",
         expect: { type: "lsl_event_timer" },
       },
-    ],
-  },
-  {
-    id: "owner-commands",
-    level: "intermediate",
-    title: "Listen for owner commands",
-    blurb: "Negative channel, filter to the owner, if on the message.",
-    minutes: 7,
-    exampleId: "listen",
-    steps: [
       {
-        title: "Why the listen is in state_entry",
-        toolbox: "Events",
-        do: "Look at state_entry. That's where llListen is armed. Channel is negative. The key filter is llGetOwner.",
-        why: "A listen handle is per-state. If you never call llListen, listen() never fires. Filtering to the owner means strangers on that channel are ignored by the sim, not by your if.",
-        expect: { type: "lsl_fn_llListen", root: "lsl_event_state_entry" },
-      },
-      {
-        title: "The four listen values",
-        do: "The listen hat has channel, name, id, message. The if bricks compare message to spin and stop. Don't rename those sockets — those are the official parameter names.",
-        why: "Using the wrong name is a compile error. The Sensing → event value brick is how you read them.",
-        expect: { type: "lsl_event_listen" },
-      },
-    ],
-  },
-  {
-    id: "two-state-door",
-    level: "intermediate",
-    title: "A door with two states",
-    blurb: "default is closed. Touch flips to open.",
-    minutes: 7,
-    exampleId: "door",
-    steps: [
-      {
-        title: "default first",
-        do: "Two yellow hats. One says default, one says open. The LSL panel must print default { … } first. If open is on top, don't paste.",
-        why: "That's a compiler error in SL, not a style choice. PrimBlocks sorts default to the front on purpose.",
-        expect: { type: "lsl_event_touch_start", field: { name: "STATE", value: "default" } },
-      },
-      {
-        title: "state open is a statement",
-        toolbox: "Control",
-        do: "The last brick under the closed touch is change state. That's not a function. Don't put it inside a user-function brick — LSL forbids it.",
-        why: "Leaving a state dumps listens, sensors, and timers. This door doesn't have any, so it survives. Next tutorial is the one that bites.",
-        expect: { type: "lsl_state_change" },
+        title: "Bump the counter",
+        toolbox: "Variables",
+        do: "Variables should now offer change count by. Snap that under the timer hat. Delta 1.",
+        why: "That's count += 1. The hover-text brick wants a string, so next you'd cast (string)count — Operators has the cast brick. The bundled Timer counter example does that if you want to peek after.",
+        expect: { type: "lsl_change_var", root: "lsl_event_timer" },
       },
     ],
   },
@@ -265,8 +243,9 @@ export const TUTORIALS: Tutorial[] = [
     level: "intermediate",
     title: "Wire a value between groups",
     blurb: "Send along a named cable, receive it somewhere else. Noodle draws itself.",
-    minutes: 8,
+    minutes: 10,
     startEmpty: true,
+    exampleId: "wired",
     steps: [
       {
         title: "A hat to sit under",
@@ -278,45 +257,69 @@ export const TUTORIALS: Tutorial[] = [
       {
         title: "Frame the first group",
         toolbox: "Cables",
-        do: "Cables → group. Name it greet. Snap it under the hat.",
+        do: "Cables → group. Snap it under the hat. Click the name and type detect.",
         why: "The group brick is a frame. It emits a comment, not extra LSL. Use it when a stack is doing one job.",
-        expect: { type: "lsl_group", field: { name: "NAME", value: "greet" }, root: "lsl_event_touch_start" },
+        expect: { type: "lsl_group", field: { name: "NAME", value: "detect" }, root: "lsl_event_touch_start" },
       },
       {
         title: "Send the name",
         toolbox: "Cables",
-        do: "Inside that group, drop send along. Name the cable av. Plug detected name (Sensing, index 0) into the value socket.",
-        why: "llDetectedName is only legal in touch / collision / sensor. The cable name is the socket on both ends. Matching names draw the noodle.",
-        expect: { type: "lsl_cable_send", field: { name: "CABLE", value: "av" } },
+        do: "Inside that group, drop send along. Name the cable who. Sensing → detected name, index 0, plug that into the send's value socket.",
+        why: "llDetectedName is only legal in touch / collision / sensor. Matching names on send and receive draw the noodle. Compiled as string cbl_who = \"\"; then an assignment.",
+        expect: { type: "lsl_cable_send", field: { name: "CABLE", value: "who" } },
+      },
+      {
+        title: "Second group",
+        toolbox: "Cables",
+        do: "Drop another group under the first one (still in the hat). Name it greet.",
+        why: "Two frames, one event. That's the node-graph idea: one group produces a value, the other consumes it.",
+        expect: { type: "lsl_group", field: { name: "NAME", value: "greet" } },
       },
       {
         title: "Receive it on say",
         toolbox: "Cables",
-        do: "Under the group (still in the hat), drop say. Delete the default string if you need the socket empty, then plug along av into the message. The noodle should appear.",
-        why: "Receive is a value brick. It reads the last send on that name. Compiled as string cbl_av = \"\"; then cbl_av = llDetectedName(0); llSay(0, cbl_av);",
-        expect: { type: "lsl_cable_recv", field: { name: "CABLE", value: "av" } },
+        do: "Inside greet, drop say. Plug along who (Cables) into the message socket. Delete the default string if it fights you. The noodle should appear.",
+        why: "Receive is a value brick. It reads the last send on that name. The LSL is cbl_who = llDetectedName(0); llSay(0, cbl_who); — legal, pasteable.",
+        expect: { type: "lsl_cable_recv", field: { name: "CABLE", value: "who" } },
       },
     ],
   },
   {
     id: "touch-dialog",
     level: "intermediate",
-    title: "A dialog with buttons",
-    blurb: "llDialog to the toucher. 1 second forced delay.",
-    minutes: 6,
+    title: "A color dialog",
+    blurb: "Listen on a negative channel, dialog on touch, set color from the button.",
+    minutes: 12,
+    startEmpty: true,
     exampleId: "dialog",
     steps: [
       {
-        title: "Who gets the box",
-        do: "Touch uses llDetectedKey(0) as the avatar the dialog is sent to. Buttons are a list, 1–12, 24 bytes each.",
-        why: "A thirteenth button is dropped in-world. The editor warns. The sim does not error.",
-        expect: { type: "lsl_fn_llDialog" },
+        title: "Arm a listen",
+        toolbox: "Events",
+        do: "Events → state_entry, state default. Chat → listen on channel. Snap it under the hat. Channel −42. Leave name empty, key NULL_KEY, message empty.",
+        why: "A listen handle is per-state. If you never call llListen, listen() never fires. Empty name / NULL_KEY / empty message = wildcard. Negative channel so the reply isn't public chat.",
+        expect: { type: "lsl_fn_llListen", root: "lsl_event_state_entry" },
       },
       {
-        title: "The delay is real",
-        do: "Read the yellow strip. llDialog sleeps this script 1 second. Don't stack five of them in one event.",
-        why: "Forced delays are why vendors use timers. The script still compiles. The sim is what actually sleeps.",
-        expect: { type: "lsl_fn_llDialog" },
+        title: "Touch opens the box",
+        toolbox: "Events",
+        do: "Events → touch_start, next to the other hat, not inside it. Chat → dialog. Avatar socket: Sensing → detected key, 0. Message Pick a color. Channel −42 again.",
+        why: "llDialog goes to one avatar. llDetectedKey(0) is the toucher. Same channel as the listen or you never hear the click. 1 second forced delay — you'll see a yellow warning. That's real.",
+        expect: { type: "lsl_fn_llDialog", root: "lsl_event_touch_start" },
+      },
+      {
+        title: "Buttons are a list",
+        toolbox: "Lists",
+        do: "Lists → the [ a, b, c, d ] brick. Plug it into dialog's buttons socket. Put string bricks Red, Green, Blue in the first three holes. Leave the fourth empty.",
+        why: "1–12 buttons, 24 bytes each. A thirteenth is dropped in-world. The editor warns; the sim does not error.",
+        expect: { type: "lsl_list", root: "lsl_event_touch_start" },
+      },
+      {
+        title: "Hear the click",
+        toolbox: "Events",
+        do: "Events → listen. State default. Control → if. Condition: Sensing → event value message, compared to the string Red. Looks → set color on the then-branch.",
+        why: "listen(integer channel, string name, key id, string message) — those four names are official. Using the wrong one is a compile error. The Color dialog example is the finished version if you get stuck.",
+        expect: { type: "lsl_event_listen" },
       },
     ],
   },
@@ -324,21 +327,38 @@ export const TUTORIALS: Tutorial[] = [
     id: "sensor-greeter",
     level: "advanced",
     title: "Greet whoever walks up",
-    blurb: "llSensorRepeat, AGENT, range cap 96 m.",
-    minutes: 6,
-    exampleId: "sensor",
+    blurb: "llSensorRepeat, then a cable so the say brick doesn't nest the detect.",
+    minutes: 10,
+    startEmpty: true,
+    exampleId: "wired-sensor",
     steps: [
       {
         title: "Arm it in state_entry",
-        do: "state_entry starts llSensorRepeat. Type AGENT, 8 metres, PI arc (a sphere), every 5 seconds.",
-        why: "96 m is the cap — type 200 and you get a warning. The sim clamps. Repeating sensors die on state change, same as listens.",
+        toolbox: "Events",
+        do: "state_entry, default. Sensing or World → repeating sensor. Type AGENT, range 8, arc PI, rate 5.",
+        why: "96 m is the cap — type 200 and you get a warning. Repeating sensors die on state change, same as listens.",
         expect: { type: "lsl_fn_llSensorRepeat", root: "lsl_event_state_entry" },
       },
       {
-        title: "Hits are nearest-first",
-        do: "The sensor hat has num_detected. Use llDetectedName(0) inside that hat only. It is empty in a timer.",
-        why: "Max 16 hits. no_sensor is optional if you want a nobody-here hover.",
+        title: "The sensor hat",
+        toolbox: "Events",
+        do: "Events → sensor. Drop it beside state_entry.",
+        why: "Hits are nearest-first, max 16. llDetectedName is only legal in this hat (or touch / collision).",
         expect: { type: "lsl_event_sensor" },
+      },
+      {
+        title: "Send the name along a cable",
+        toolbox: "Cables",
+        do: "Inside the sensor hat: group named sense, then send along who, value = detected name 0.",
+        why: "Same pattern as the wired greeter, now in a sensor. The noodle is easier to read than a detect brick nested inside say.",
+        expect: { type: "lsl_cable_send", field: { name: "CABLE", value: "who" }, root: "lsl_event_sensor" },
+      },
+      {
+        title: "Say what came in",
+        toolbox: "Cables",
+        do: "Second group greet, say, message = along who.",
+        why: "Compiled as string cbl_who = \"\"; cbl_who = llDetectedName(0); llSay(0, cbl_who); Examples → Wired sensor is the finished stack.",
+        expect: { type: "lsl_cable_recv", field: { name: "CABLE", value: "who" } },
       },
     ],
   },
@@ -347,43 +367,30 @@ export const TUTORIALS: Tutorial[] = [
     level: "advanced",
     title: "Config on a notecard",
     blurb: "Inventory check, NAK, EOF, CHANGED_INVENTORY.",
-    minutes: 9,
+    minutes: 10,
+    startEmpty: true,
     exampleId: "notecard",
     openNotecard: true,
     steps: [
       {
-        title: "The hat is not an event",
-        do: "The World hat injects nc_start_config(), dataserver, and changed so you still have one handler per event. Don't add a second dataserver hat.",
+        title: "The reader hat",
+        toolbox: "World",
+        do: "World → read notecard. Name it config. State default. This is not an event — it injects nc_start_config(), dataserver, and changed.",
         why: "LSL allows one dataserver per state. Two would be a compile error. The generator merges on purpose.",
-        expect: { type: "lsl_notecard_read" },
-      },
-      {
-        title: "The card has to exist",
-        do: "Notecard panel: inventory name config. Copy, in SL New Note, paste, name it config, drop it in the same prim as the script.",
-        why: "Wrong name → llGetInventoryType is not INVENTORY_NOTECARD → the reader bails. That's the bug everyone hits.",
         expect: { type: "lsl_notecard_read", field: { name: "NAME", value: "config" } },
       },
       {
-        title: "Don't touch until ready",
-        do: "touch_start waits on nc_ready_config. If you click during the 0.1s-per-line read, nothing happens. That's on purpose.",
-        why: "Changing state mid-read dumps the event queue. You never see EOF and ready stays false forever.",
-        expect: { type: "lsl_nc_ready" },
+        title: "The card has to exist",
+        do: "Notecard panel (already open): inventory name config. Copy, in SL New Note, paste, name it config, drop it in the same prim as the script.",
+        why: "Wrong name → llGetInventoryType is not INVENTORY_NOTECARD → the reader bails. That's the bug everyone hits.",
+        expect: { type: "lsl_notecard_read" },
       },
-    ],
-  },
-  {
-    id: "state-clears-listens",
-    level: "advanced",
-    title: "State change kills listens",
-    blurb: "Re-arm in the new state's state_entry.",
-    minutes: 5,
-    exampleId: "door",
-    steps: [
       {
-        title: "This door is lucky",
-        do: "The door survives state change because it doesn't listen. Imagine you added llListen in default.",
-        why: "state open; leaves default, dumps the queue, forgets every listen / sensor / timer. The new state's state_entry has to call llListen again.",
-        expect: { type: "lsl_state_change" },
+        title: "Don't touch until ready",
+        toolbox: "Events",
+        do: "touch_start. Control → if. Condition: World → notecard config ready. Then-branch: say. Else: owner-say still reading.",
+        why: "If you click during the 0.1s-per-line read, ready is false. Changing state mid-read dumps the event queue and you never see EOF.",
+        expect: { type: "lsl_nc_ready" },
       },
     ],
   },
@@ -391,32 +398,23 @@ export const TUTORIALS: Tutorial[] = [
     id: "delays-and-sleep",
     level: "advanced",
     title: "Forced delays vs a frozen script",
-    blurb: "IM 2 s. Dialog 1 s. Sleep freezes everything.",
-    minutes: 5,
-    exampleId: "dialog",
+    blurb: "Put a dialog down. Read the yellow strip. Don't stack five of them.",
+    minutes: 6,
+    startEmpty: true,
     steps: [
       {
-        title: "Read the yellow strip",
-        do: "llDialog is 1 s. llInstantMessage is 2 s. llSetPos on an unattached root is 0.2 s. The script still emits.",
-        why: "The sim sleeps. Other events wait in a 64-deep queue. Prefer llSetLinkPrimitiveParamsFast for bulk PRIM_* — no that delay.",
-        expect: { type: "lsl_fn_llDialog" },
+        title: "A hat",
+        toolbox: "Events",
+        do: "touch_start, default.",
+        why: "Delays are on the call, but they freeze the whole script until they finish.",
+        expect: { type: "lsl_event_touch_start" },
       },
-    ],
-  },
-  {
-    id: "notecard-acl",
-    level: "expert",
-    title: "Access list from a notecard",
-    blurb: "Raw lines (no =). Don't change state mid-read.",
-    minutes: 8,
-    exampleId: "notecard",
-    openNotecard: true,
-    steps: [
       {
-        title: "Format",
-        do: "key = value for settings. A line with no equals is a raw name (access lists). # and // comments. 255 UTF-8 bytes or the sim truncates — the panel warns first.",
-        why: "Build the card here so you don't debug truncation in-world.",
-        expect: { type: "lsl_notecard_read" },
+        title: "Drop a dialog",
+        toolbox: "Chat",
+        do: "Chat → dialog, snap under the hat. Fill avatar with detected key 0 so it isn't NULL_KEY. Look at the yellow warning on the brick and in the LSL panel.",
+        why: "llDialog sleeps this script 1 second. llInstantMessage is 2 s. llSetPos on an unattached root is 0.2 s. The script still emits. Other events wait in a 64-deep queue.",
+        expect: { type: "lsl_fn_llDialog" },
       },
     ],
   },
@@ -429,27 +427,50 @@ export const TUTORIALS: Tutorial[] = [
     startEmpty: true,
     steps: [
       {
+        title: "An if",
+        toolbox: "Control",
+        do: "You need a hat first: Events → touch_start, then Control → if under it.",
+        why: "if conditions are integer. TRUE / FALSE are 1 and 0.",
+        expect: { type: "lsl_if", root: "lsl_event_touch_start" },
+      },
+      {
         title: "Try a bad snap",
         toolbox: "Operators",
-        do: "Drop an if from Control. Try to plug a float number into the condition — it should refuse. Plug an integer or TRUE instead.",
-        why: "if conditions are integer. Float does not coerce. String + number needs (string)n. Lists cannot contain lists. That's the connection checker, not a suggestion.",
+        do: "Operators → a float number. Try to plug it into the if condition. It should refuse. Plug TRUE (Constants) or an integer instead.",
+        why: "Float does not coerce to the condition. String + number needs (string)n. Lists cannot contain lists. That's the connection checker, not a suggestion.",
         expect: { type: "lsl_if" },
       },
     ],
   },
   {
-    id: "one-handler",
+    id: "two-groups",
     level: "expert",
-    title: "One handler, no state in functions",
-    blurb: "One touch_start per state. Functions cannot state foo;",
-    minutes: 5,
-    exampleId: "door",
+    title: "Two cables, two groups",
+    blurb: "Name and key on separate cables. Easy to mess up the names.",
+    minutes: 8,
+    startEmpty: true,
+    exampleId: "wired-id",
     steps: [
       {
-        title: "Two hats, one kept",
-        do: "If you drop a second touch_start in default, the generator keeps the first and notes the drop in the header comments.",
-        why: "LSL allows one handler per event per state. Merge the bodies yourself.",
+        title: "Hat",
+        toolbox: "Events",
+        do: "touch_start, default.",
+        why: "Same as the wired greeter, now with two noodles. Examples → Wired name + key is the finished stack if you get stuck.",
         expect: { type: "lsl_event_touch_start" },
+      },
+      {
+        title: "Send who and id",
+        toolbox: "Cables",
+        do: "Group detect. send along who = detected name 0, then send along id = detected key 0 (Sensing) under that.",
+        why: "Two sends, two names. If you reuse who for the key, the types fight and the noodle is lying.",
+        expect: { type: "lsl_cable_send", field: { name: "CABLE", value: "who" } },
+      },
+      {
+        title: "The other send",
+        toolbox: "Cables",
+        do: "The second send is named id. Value is detected key 0.",
+        why: "Keys and strings are close in LSL (they coerce) but keeping them on separate cables matches what you'd do with two sockets on a node.",
+        expect: { type: "lsl_cable_send", field: { name: "CABLE", value: "id" } },
       },
     ],
   },
@@ -462,11 +483,11 @@ export const TUTORIALS: Tutorial[] = [
     startEmpty: true,
     steps: [
       {
-        title: "The escape hatch",
+        title: "Hat + raw",
         toolbox: "Control",
-        do: "Control has a raw statement brick. Type real LSL in it. The type checker will not save you.",
-        why: "Missing on purpose: vehicles, KFM, llJson*, HMAC, pathfinding. Hover a catalog brick for the wiki signature. If the tooltip is empty, functions.ts is the bug.",
-        expect: { type: "lsl_raw_stmt" },
+        do: "touch_start, then Control → raw statement. Type real LSL in it, e.g. llOwnerSay((string)llGetUnixTime());",
+        why: "The type checker will not save you. Missing on purpose: vehicles, KFM, llJson*, HMAC, pathfinding. Hover a catalog brick for the wiki signature.",
+        expect: { type: "lsl_raw_stmt", root: "lsl_event_touch_start" },
       },
     ],
   },

@@ -458,7 +458,7 @@ export function registerBlocks() {
       message0: "change %1 by %2",
       args0: [
         { type: "field_variable", name: "VAR", variable: "item" },
-        { type: "input_value", name: "DELTA", check: "Number" },
+        { type: "input_value", name: "DELTA", check: ["Integer", "Number", "Boolean"] },
       ],
       previousStatement: null,
       nextStatement: null,

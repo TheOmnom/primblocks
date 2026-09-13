@@ -5,12 +5,18 @@ export type ExampleId =
   | "listen"
   | "counter"
   | "dialog"
-  | "sensor";
+  | "sensor"
+  | "wired"
+  | "wired-sensor"
+  | "wired-id";
+
+export type ExampleLevel = "basic" | "intermediate" | "advanced" | "expert";
 
 export type Example = {
   id: ExampleId;
   title: string;
   blurb: string;
+  level: ExampleLevel;
   state: object;
 };
 
@@ -64,6 +70,69 @@ function hover(text: string, next?: object) {
   return block;
 }
 
+function sayValue(msgBlock: object, channel = 0, next?: object) {
+  const block: Record<string, unknown> = {
+    type: "lsl_fn_llSay",
+    inputs: {
+      MSG: { block: msgBlock },
+      CHANNEL: { shadow: { type: "lsl_integer", fields: { NUM: channel } } },
+    },
+  };
+  if (next) block.next = { block: next };
+  return block;
+}
+
+function groupBlock(name: string, inner: object, next?: object) {
+  const block: Record<string, unknown> = {
+    type: "lsl_group",
+    fields: { NAME: name },
+    inputs: { DO: { block: inner } },
+  };
+  if (next) block.next = { block: next };
+  return block;
+}
+
+function sendCable(name: string, value: object, next?: object) {
+  const block: Record<string, unknown> = {
+    type: "lsl_cable_send",
+    fields: { CABLE: name },
+    inputs: { VALUE: { block: value } },
+  };
+  if (next) block.next = { block: next };
+  return block;
+}
+
+function recvCable(name: string) {
+  return { type: "lsl_cable_recv", fields: { CABLE: name } };
+}
+
+function detectedName() {
+  return {
+    type: "lsl_fn_llDetectedName",
+    inputs: { INDEX: { shadow: { type: "lsl_integer", fields: { NUM: 0 } } } },
+  };
+}
+
+function detectedKey() {
+  return {
+    type: "lsl_fn_llDetectedKey",
+    inputs: { INDEX: { shadow: { type: "lsl_integer", fields: { NUM: 0 } } } },
+  };
+}
+
+function regionSayTo(target: object, text: string, channel = 0, next?: object) {
+  const block: Record<string, unknown> = {
+    type: "lsl_fn_llRegionSayTo",
+    inputs: {
+      MSG: { shadow: { type: "lsl_string", fields: { TEXT: text } } },
+      TARGET: { block: target },
+      CHANNEL: { shadow: { type: "lsl_integer", fields: { NUM: channel } } },
+    },
+  };
+  if (next) block.next = { block: next };
+  return block;
+}
+
 function wrap(blocks: object[], variables?: { name: string; type: string; id: string }[]) {
   const state: Record<string, unknown> = { blocks: { languageVersion: 0, blocks } };
   if (variables) state.variables = variables;
@@ -98,6 +167,7 @@ export const EXAMPLES: Example[] = [
     id: "greeter",
     title: "Touch greeter",
     blurb: "Classic hello. Touch says hello on channel 0 and owner-says Touched.",
+    level: "basic",
     state: wrap([
       ev(
         "lsl_event_touch_start",
@@ -115,6 +185,7 @@ export const EXAMPLES: Example[] = [
     id: "notecard",
     title: "Notecard greeter",
     blurb: "Reads a config notecard in the same prim (inventory check, dataserver, EOF, NAK, reload on CHANGED_INVENTORY). Touch says the greeting once the card is ready. Pair with the Notecard panel.",
+    level: "advanced",
     state: wrap(
       [
         {
@@ -177,6 +248,7 @@ export const EXAMPLES: Example[] = [
     id: "door",
     title: "Two-state door",
     blurb: "default is closed. Touch switches to open (90° yaw) and back. Hover text on each state_entry.",
+    level: "intermediate",
     state: wrap([
       ev(
         "lsl_event_state_entry",
@@ -252,6 +324,7 @@ export const EXAMPLES: Example[] = [
     id: "listen",
     title: "Owner commands",
     blurb: "Listens on channel 1 for the owner. spin / stop uses llTargetOmega. Listens die on state change — this one lives in default.",
+    level: "intermediate",
     state: wrap([
       ev(
         "lsl_event_state_entry",
@@ -349,6 +422,7 @@ export const EXAMPLES: Example[] = [
     id: "counter",
     title: "Timer counter",
     blurb: "Hover text counts seconds. Uses a global integer, llSetTimerEvent, and (string) cast — LSL will not concat an integer onto a string otherwise.",
+    level: "intermediate",
     state: wrap(
       [
       ev(
@@ -402,6 +476,7 @@ export const EXAMPLES: Example[] = [
     id: "dialog",
     title: "Color dialog",
     blurb: "Touch opens a 3-button dialog on channel −42. listen sets prim color from the button label.",
+    level: "intermediate",
     state: wrap([
       ev(
         "lsl_event_state_entry",
@@ -515,6 +590,7 @@ export const EXAMPLES: Example[] = [
     id: "sensor",
     title: "Nearby greeter",
     blurb: "Repeating agent sensor, 8 m, full sphere. Says hello to the nearest avatar every sweep.",
+    level: "advanced",
     state: wrap([
       ev(
         "lsl_event_state_entry",
@@ -537,6 +613,82 @@ export const EXAMPLES: Example[] = [
         40,
         260,
         say("Hello there", 0),
+      ),
+    ]),
+  },
+  {
+    id: "wired",
+    title: "Wired greeter",
+    blurb: "Two groups, a named cable between them. detect writes the toucher’s name; greet says it. The noodle is the point.",
+    level: "intermediate",
+    state: wrap([
+      ev(
+        "lsl_event_touch_start",
+        40,
+        40,
+        groupBlock(
+          "detect",
+          sendCable("who", detectedName()),
+          groupBlock("greet", sayValue(recvCable("who"))),
+        ),
+      ),
+    ]),
+  },
+  {
+    id: "wired-sensor",
+    title: "Wired sensor",
+    blurb: "Repeating agent sensor. One group sends the nearest name along who; the other says it. Same cable idea, in a sensor hat.",
+    level: "advanced",
+    state: wrap([
+      ev(
+        "lsl_event_state_entry",
+        40,
+        20,
+        {
+          type: "lsl_fn_llSensorRepeat",
+          inputs: {
+            NAME: { shadow: { type: "lsl_string", fields: { TEXT: "" } } },
+            ID: { shadow: { type: "lsl_const_nullkey" } },
+            TYPE: { shadow: { type: "lsl_const_sensor", fields: { VAL: "AGENT" } } },
+            RANGE: { shadow: { type: "lsl_float", fields: { NUM: 8 } } },
+            ARC: { shadow: { type: "lsl_const_math", fields: { VAL: "PI" } } },
+            RATE: { shadow: { type: "lsl_float", fields: { NUM: 5 } } },
+          },
+        },
+      ),
+      ev(
+        "lsl_event_sensor",
+        40,
+        240,
+        groupBlock(
+          "sense",
+          sendCable("who", detectedName()),
+          groupBlock(
+            "greet",
+            sayValue(recvCable("who"), 0, ownerSay("Sensor tick.")),
+          ),
+        ),
+      ),
+    ]),
+  },
+  {
+    id: "wired-id",
+    title: "Wired name + key",
+    blurb: "Two noodles. detect sends who (name) and id (key). greet says the name in public and region-says a private hello to the key. Names have to stay distinct or the types fight.",
+    level: "expert",
+    state: wrap([
+      ev(
+        "lsl_event_touch_start",
+        40,
+        40,
+        groupBlock(
+          "detect",
+          sendCable("who", detectedName(), sendCable("id", detectedKey())),
+          groupBlock(
+            "greet",
+            sayValue(recvCable("who"), 0, regionSayTo(recvCable("id"), "private hello")),
+          ),
+        ),
       ),
     ]),
   },

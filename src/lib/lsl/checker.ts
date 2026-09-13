@@ -89,22 +89,15 @@ export class LslConnectionChecker extends Blockly.ConnectionChecker {
     if (safety !== Blockly.Connection.CAN_CONNECT) return safety;
     if (!a || !b) return Blockly.Connection.REASON_TARGET_NULL;
 
-    const close =
-      isDragging &&
-      opt_distance != null &&
-      typeof (a as Blockly.RenderedConnection).distanceFrom === "function" &&
-      (a as Blockly.RenderedConnection).distanceFrom(b as Blockly.RenderedConnection) <=
-        opt_distance;
-
     if (!this.doTypeChecks(a, b)) {
-      if (close && this.pendingMessage) {
+      if (this.pendingMessage) {
         this.lastReject = { message: this.pendingMessage, at: Date.now() };
       }
       return Blockly.Connection.REASON_CHECKS_FAILED;
     }
     const ctx = this.lslContext(a, b);
     if (ctx) {
-      if (close) this.lastReject = { message: ctx, at: Date.now() };
+      this.lastReject = { message: ctx, at: Date.now() };
       return REASON_LSL_CONTEXT;
     }
     if (isDragging) {
@@ -117,6 +110,10 @@ export class LslConnectionChecker extends Blockly.ConnectionChecker {
   }
 
   override doTypeChecks(a: Connection, b: Connection): boolean {
+    // Serialization connects a block before its fields are loaded (cast TYPE is
+    // still "integer", param NAME is still num_detected). Refuse those snaps
+    // after load via reapplyDynamicTypes + the live checker.
+    if (!Blockly.Events.isEnabled()) return true;
     if (!isValueConn(a) || !isValueConn(b)) return super.doTypeChecks(a, b);
     const pair = splitValue(a, b);
     if (!pair) return super.doTypeChecks(a, b);
@@ -220,6 +217,7 @@ export class LslConnectionChecker extends Blockly.ConnectionChecker {
   }
 
   private lslContext(a: Connection, b: Connection): string | null {
+    if (!Blockly.Events.isEnabled()) return null;
     const superior = a.isSuperior() ? a : b;
     const inferior = a.isSuperior() ? b : a;
     const child = inferior.getSourceBlock();
@@ -238,9 +236,11 @@ export class LslConnectionChecker extends Blockly.ConnectionChecker {
     }
 
     if (child.type === "lsl_param" && inferior.type === Blockly.ConnectionType.OUTPUT_VALUE) {
+      // Serialization connects the block before it loads the NAME field, so the
+      // dropdown still says num_detected. Don't refuse a legal example for that.
       const ev = ancestorEvent(parent);
+      const name = String(child.getFieldValue("NAME") || "");
       if (ev) {
-        const name = String(child.getFieldValue("NAME") || "");
         const allowed = eventParams(ev.type).map((p) => p.name);
         if (allowed.length && !allowed.includes(name)) {
           return `Can't snap: ${name} is not a parameter of ${ev.type.replace("lsl_event_", "")}().`;

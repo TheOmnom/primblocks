@@ -9,8 +9,10 @@ type Props = {
   tutorial: Tutorial;
   stepIndex: number;
   workspace: WorkspaceSvg | null;
+  tick?: string;
   onStep: (index: number) => void;
   onOpenCategory: (name: string) => void;
+  onHighlight: (type: string | undefined) => void;
   onQuit: () => void;
 };
 
@@ -18,8 +20,10 @@ export function TutorialCoach({
   tutorial,
   stepIndex,
   workspace,
+  tick,
   onStep,
   onOpenCategory,
+  onHighlight,
   onQuit,
 }: Props) {
   const step = tutorial.steps[stepIndex];
@@ -31,16 +35,20 @@ export function TutorialCoach({
     if (step?.toolbox) onOpenCategory(step.toolbox);
   }, [step?.toolbox, stepIndex, onOpenCategory]);
 
+  useEffect(() => {
+    onHighlight(done ? step?.expect?.type : undefined);
+  }, [done, step?.expect?.type, tick, onHighlight]);
+
   if (!step) return null;
 
   return (
-    <div className="pointer-events-auto absolute bottom-3 left-3 z-20 w-[min(24rem,calc(100%-1.5rem))] rounded-xl border border-border bg-surface/95 p-3 shadow-xl backdrop-blur-sm sm:left-[8.2rem]">
-      <div className="mb-2 flex items-start justify-between gap-2">
+    <div className="pointer-events-auto absolute bottom-3 left-3 z-20 flex w-[min(26rem,calc(100%-1.5rem))] flex-col gap-2 rounded-xl border border-border bg-surface/95 p-3 shadow-xl backdrop-blur-sm sm:left-[8.2rem]">
+      <div className="flex items-start justify-between gap-2">
         <div>
           <p className="text-[11px] text-muted">
             {tutorial.title}
             <span className="ml-2 tabular-nums">
-              {stepIndex + 1}/{tutorial.steps.length}
+              Step {stepIndex + 1} of {tutorial.steps.length}
             </span>
           </p>
           <p className="font-display text-sm font-semibold">{step.title}</p>
@@ -54,12 +62,27 @@ export function TutorialCoach({
           <X className="size-4" />
         </button>
       </div>
+
+      <ol className="hidden gap-1 sm:block">
+        {tutorial.steps.map((s, i) => (
+          <li
+            key={s.title}
+            className={cn(
+              "truncate text-[11px]",
+              i === stepIndex ? "font-medium text-fg" : i < stepIndex ? "text-accent" : "text-muted",
+            )}
+          >
+            {i < stepIndex ? "✓" : i === stepIndex ? "→" : "·"} {s.title}
+          </li>
+        ))}
+      </ol>
+
       <p className="text-sm text-pretty">{step.do}</p>
-      <p className="mt-2 rounded-md border border-border bg-bg px-2.5 py-2 text-xs text-muted text-pretty">
+      <p className="rounded-md border border-border bg-bg px-2.5 py-2 text-xs text-muted text-pretty">
         <span className="font-medium text-fg">Why. </span>
         {step.why}
       </p>
-      <div className="mt-3 flex items-center gap-2">
+      <div className="flex items-center gap-2">
         <Button
           size="sm"
           variant="ghost"

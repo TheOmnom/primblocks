@@ -2,6 +2,7 @@ import * as Blockly from "blockly/core";
 import * as En from "blockly/msg/en";
 import { registerBlocks } from "./blocks";
 import { LslConnectionChecker, registerLslChecker } from "./checker";
+import { reapplyDynamicTypes } from "./dynamics";
 import { generateLsl } from "./generator";
 import { primTheme } from "./theme";
 import { buildToolbox } from "./toolbox";
@@ -165,16 +166,29 @@ export function createTypedVariable(
   workspace.refreshToolboxSelection();
 }
 
-export function loadState(workspace: Blockly.WorkspaceSvg, state: object) {
+export function loadState(workspace: Blockly.WorkspaceSvg, state: object, opts?: { keepFlyout?: boolean }) {
   Blockly.Events.disable();
   try {
     workspace.clear();
+    const vars = (state as { variables?: { name: string; type?: string; id?: string }[] }).variables;
+    if (vars) {
+      const map = workspace.getVariableMap();
+      for (const v of vars) {
+        if (!v?.name) continue;
+        try {
+          map.createVariable(v.name, v.type || "", v.id);
+        } catch {
+          /* already exists */
+        }
+      }
+    }
     Blockly.serialization.workspaces.load(state, workspace);
+    reapplyDynamicTypes(workspace);
   } finally {
     Blockly.Events.enable();
   }
   Blockly.svgResize(workspace);
-  hideFlyout(workspace);
+  if (!opts?.keepFlyout) hideFlyout(workspace);
   try {
     workspace.cleanUp();
   } catch {
@@ -201,6 +215,15 @@ export function openToolboxCategory(workspace: Blockly.WorkspaceSvg, name: strin
       return;
     }
   }
+}
+
+export function highlightType(workspace: Blockly.WorkspaceSvg, type: string | undefined) {
+  if (!type) {
+    workspace.highlightBlock(null);
+    return;
+  }
+  const hit = workspace.getAllBlocks(false).find((b) => b.type === type && !b.isShadow?.());
+  workspace.highlightBlock(hit ? hit.id : null);
 }
 
 export const EMPTY_WORKSPACE = { blocks: { languageVersion: 0, blocks: [] } };

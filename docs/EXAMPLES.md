@@ -1,6 +1,6 @@
 # Bundled examples
 
-All seven live in `src/lib/lsl/examples.ts` as Blockly serialization. Loading one replaces the workspace (and the script name). The notecard greeter also seeds the Notecard panel.
+All of these live in `src/lib/lsl/examples.ts` as Blockly serialization. Loading one replaces the workspace (and the script name). The notecard greeter also seeds the Notecard panel.
 
 Paste targets: a box prim is enough. Door wants a prim that can rotate; sensor wants an avatar in range.
 
@@ -67,15 +67,16 @@ Check:
 - filter key is `llGetOwner()`, not `NULL_KEY`, so strangers on that channel are ignored
 - if you add a second state later, that listen is gone until `state_entry` runs again
 
-## 6. Dialog
+## 6. Color dialog
 
-Touch → `llDialog` to the toucher (`llDetectedKey(0)`) with a short button list on a negative channel. `listen` handles the click.
+Touch → `llDialog` to the toucher (`llDetectedKey(0)`) with Red / Green / Blue on channel −42. `state_entry` calls `llListen` on that channel (statement form — LSL lets you ignore the handle). `listen` sets prim color from the button.
 
-Check:
+```lsl
+llListen(-42, "", NULL_KEY, "");
+llDialog(llDetectedKey(0), "Pick a color", ["Red", "Green", "Blue"], -42);
+```
 
-- dialog and listen share the channel
-- buttons list is 1–12 strings, each ≤ 24 bytes (validator warns)
-- 1 s forced delay on `llDialog` shows as a warning, not an error
+If this example comes in empty, `llListen` was still a reporter and Blockly refused to snap it under the hat.
 
 ## 7. Nearby greeter
 
@@ -86,6 +87,39 @@ Check:
 - range 8 is under the 96 m cap
 - `no_sensor` is optional; this example does not use it
 - repeating sensor is cleared on state change — only one state here
+
+## 8. Wired greeter
+
+Two groups under `touch_start`. `detect` sends `llDetectedName(0)` along `who`. `greet` says `along who`. Expect:
+
+```lsl
+string cbl_who = "";
+…
+cbl_who = llDetectedName(0);
+llSay(0, cbl_who);
+```
+
+A noodle is drawn between matching names.
+
+## 9. Wired sensor
+
+Same cable, in a `sensor` hat, armed with `llSensorRepeat`.
+
+## 10. Wired name + key
+
+Expert. Two noodles. `detect` sends `who` = `llDetectedName(0)` and `id` = `llDetectedKey(0)`. `greet` says the name and `llRegionSayTo`s the key.
+
+```lsl
+string cbl_who = "";
+key cbl_id = NULL_KEY;
+…
+cbl_who = llDetectedName(0);
+cbl_id = llDetectedKey(0);
+llSay(0, cbl_who);
+llRegionSayTo(cbl_id, 0, "private hello");
+```
+
+Reusing `who` for the key is the usual mistake — types fight, noodle lies.
 
 ## Adding an example
 
