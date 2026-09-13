@@ -1,0 +1,67 @@
+name: Cleanup old artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      keep_runs:
+        description: How many most recent artifact-producing runs to keep
+        required: false
+        default: "3"
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete artifacts from older runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KEEP: ${{ inputs.keep_runs }}
+        run: |
+          set -euo pipefail
+          KEEP="${KEEP:-3}"
+          echo "Keeping artifacts from the $KEEP most recent runs; deleting the rest."
+          page=1
+          : > /tmp/artifacts.jsonl
+          while :; do
+            resp=$(gh api "/repos/${{ github.repository }}/actions/artifacts?per_page=100&page=${page}")
+            count=$(echo "$resp" | jq '.artifacts | length')
+            echo "$resp" | jq -c '.artifacts[]' >> /tmp/artifacts.jsonl
+            echo "page $page: $count artifacts"
+            [ "$count" -lt 100 ] && break
+            page=$((page + 1))
+          done
+          total=$(wc -l < /tmp/artifacts.jsonl | tr -d ' ')
+          echo "Listed $total artifacts"
+          jq -r 'select(.expired|not) | [.workflow_run.id, .created_at] | @tsv' /tmp/artifacts.jsonl \
+            | sort -k2,2r | awk '!seen[$1]++ {print $1}' > /tmp/run_ids.txt
+          keep_ids=$(head -n "$KEEP" /tmp/run_ids.txt | tr '\n' ' ')
+          echo "Keep run ids: $keep_ids"
+          deleted=0
+          bytes=0
+          while IFS= read -r art; do
+            id=$(echo "$art" | jq -r '.id')
+            run=$(echo "$art" | jq -r '.workflow_run.id')
+            expired=$(echo "$art" | jq -r '.expired')
+            name=$(echo "$art" | jq -r '.name')
+            size=$(echo "$art" | jq -r '.size_in_bytes')
+            created=$(echo "$art" | jq -r '.created_at')
+            if [ "$expired" = "true" ]; then
+              continue
+            fi
+            if echo "$keep_ids" | grep -qw "$run"; then
+              echo "KEEP  $name  run=$run  $size  $created"
+              continue
+            fi
+            echo "DELETE $name  id=$id  run=$run  $size  $created"
+            if gh api -X DELETE "/repos/${{ github.repository }}/actions/artifacts/${id}" >/dev/null; then
+              deleted=$((deleted + 1))
+              bytes=$((bytes + size))
+            else
+              echo "WARN failed to delete $id" >&2
+            fi
+          done < /tmp/artifacts.jsonl
+          echo "Deleted $deleted artifacts, $bytes bytes"
