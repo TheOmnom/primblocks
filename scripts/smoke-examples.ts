@@ -6,6 +6,7 @@ import { LslConnectionChecker, registerLslChecker } from "../src/lib/lsl/checker
 import { reapplyDynamicTypes } from "../src/lib/lsl/dynamics.ts";
 import { EXAMPLES } from "../src/lib/lsl/examples.ts";
 import { generateLsl } from "../src/lib/lsl/generator.ts";
+import { importLsl } from "../src/lib/lsl/import-lsl.ts";
 import { stepSatisfied, TUTORIALS } from "../src/lib/lsl/tutorials.ts";
 
 Blockly.setLocale(En as unknown as { [key: string]: string });
@@ -150,5 +151,17 @@ assert.equal(stepSatisfied(greeterWs, hello.steps[1]), true, "greeter has say");
 assert.equal(stepSatisfied(greeterWs, hello.steps[2]), true, "greeter has owner-say");
 greeterWs.dispose();
 
+{
+  const src = `default\n{\n    touch_start(integer num_detected)\n    {\n        llSay(0, "Hello, Avatar!");\n        llOwnerSay("Touched.");\n    }\n}\n`;
+  const imported = importLsl(src);
+  const round = load(imported.state);
+  const code = generateLsl(round);
+  round.dispose();
+  assert.match(code, /touch_start\(integer num_detected\)/);
+  assert.match(code, /llSay\(0, "Hello, Avatar!"\)/);
+  assert.match(code, /llOwnerSay\("Touched."\)/);
+}
+
 console.log("all examples emit pasteable LSL");
 console.log("tutorials start empty and wait on the first brick");
+console.log("import LSL rebuilds the greeter");

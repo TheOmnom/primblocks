@@ -7,11 +7,11 @@ import {
   FolderOpen,
   GraduationCap,
   Lightbulb,
-  Plus,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { CodePanel } from "@/components/code-panel";
+import { FileMenu } from "@/components/file-menu";
 import { HelpBubble } from "@/components/help-bubble";
 import { NotecardEditor } from "@/components/notecard-editor";
 import { PresetsDialog } from "@/components/presets-dialog";
@@ -31,7 +31,16 @@ import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { EMPTY_SCRIPT } from "@/lib/lsl/assemble";
 import { EXAMPLES, exampleById } from "@/lib/lsl/examples";
-import { greeterNotecard, type NotecardDoc } from "@/lib/lsl/notecard";
+import { downloadText, pickFile, saveTextAs } from "@/lib/lsl/file-io";
+import { importLsl } from "@/lib/lsl/import-lsl";
+import { emptyNotecard, greeterNotecard, type NotecardDoc } from "@/lib/lsl/notecard";
+import {
+  interpretFile,
+  nameFromFilename,
+  packProject,
+  projectFileName,
+  stringifyProject,
+} from "@/lib/lsl/project";
 import { tutorialById, type Tutorial } from "@/lib/lsl/tutorials";
 import type { Diagnostic } from "@/lib/lsl/validate";
 import {
@@ -83,6 +92,10 @@ export function BlockEditor() {
   const [varName, setVarName] = useState("count");
   const [varType, setVarType] = useState<(typeof VAR_TYPES)[number]>("integer");
   const [codeOpen, setCodeOpen] = useState(false);
+  const scriptNameRef = useRef(scriptName);
+  const notecardRef = useRef(notecard);
+  scriptNameRef.current = scriptName;
+  notecardRef.current = notecard;
 
   const persist = useCallback(() => {
     const ws = wsRef.current;
@@ -155,6 +168,27 @@ export function BlockEditor() {
     const id = window.setInterval(persist, 1200);
     return () => window.clearInterval(id);
   }, [persist]);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      const key = e.key.toLowerCase();
+      if (key === "s") {
+        e.preventDefault();
+        if (e.shiftKey) void fileSaveAs();
+        else fileSave();
+      } else if (key === "o") {
+        e.preventDefault();
+        if (e.shiftKey) void fileImport();
+        else void fileOpen();
+      } else if (key === "n") {
+        e.preventDefault();
+        fileNew();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   useEffect(() => {
     const on = loadHelpMode();
@@ -292,17 +326,89 @@ export function BlockEditor() {
     toast.success(`Loaded “${preset.name}”`);
   }
 
-  function newScript() {
+  function applyWorkspace(state: object, name: string, card?: NotecardDoc) {
     const ws = wsRef.current;
     const engine = engineRef.current;
     if (!ws || !engine) return;
-    engine.loadState(ws, EXAMPLES[0].state);
-    setScriptName("New Script");
-    saveScriptName("New Script");
+    engine.loadState(ws, state);
+    setScriptName(name);
+    saveScriptName(name);
+    if (card) {
+      setNotecard(card);
+      saveNotecard(card);
+    }
     const analyzed = engine.analyzeWorkspace(ws);
     setCode(analyzed.code);
     setDiagnostics(analyzed.diagnostics);
     persist();
+  }
+
+  function confirmReplace(): boolean {
+    const n = wsRef.current?.getTopBlocks(false).length ?? 0;
+    if (!n) return true;
+    return window.confirm("Replace the current bricks?");
+  }
+
+  function fileNew() {
+    const engine = engineRef.current;
+    if (!engine) return;
+    if (!confirmReplace()) return;
+    applyWorkspace(engine.EMPTY_WORKSPACE, "New Script", emptyNotecard());
+    toast.success("New script");
+  }
+
+  function currentProjectText(): string {
+    const ws = wsRef.current;
+    const engine = engineRef.current;
+    if (!ws || !engine) return stringifyProject(packProject(scriptNameRef.current, { blocks: { languageVersion: 0, blocks: [] } }, notecardRef.current));
+    return stringifyProject(packProject(scriptNameRef.current, engine.saveState(ws), notecardRef.current));
+  }
+
+  function fileSave() {
+    const name = projectFileName(scriptNameRef.current);
+    downloadText(name, currentProjectText(), "application/json");
+    toast.success(`Saved ${name}`);
+  }
+
+  async function fileSaveAs() {
+    const name = projectFileName(scriptNameRef.current);
+    const saved = await saveTextAs(name, currentProjectText(), "application/json", ".primblocks", "PrimBlocks project");
+    if (saved) toast.success(`Saved ${saved}`);
+  }
+
+  async function fileOpen() {
+    const picked = await pickFile(".primblocks,application/json,.json,.lsl,.txt,text/plain");
+    if (!picked) return;
+    const opened = interpretFile(picked.text, picked.name);
+    if (opened.kind === "error") {
+      toast.error(opened.message);
+      return;
+    }
+    if (!confirmReplace()) return;
+    if (opened.kind === "project") {
+      applyWorkspace(opened.project.state, opened.project.scriptName, opened.project.notecard);
+      toast.success(`Opened ${picked.name}`);
+      return;
+    }
+    if (opened.kind === "workspace") {
+      applyWorkspace(opened.state, opened.scriptName);
+      toast.success(`Opened ${picked.name}`);
+      return;
+    }
+    const imported = importLsl(opened.source);
+    applyWorkspace(imported.state, opened.scriptName);
+    toast.success(`Imported ${imported.brickCount} stack${imported.brickCount === 1 ? "" : "s"}`);
+    if (imported.warnings[0]) toast.message(imported.warnings[0]);
+  }
+
+  async function fileImport() {
+    const picked = await pickFile(".lsl,.txt,text/plain");
+    if (!picked) return;
+    if (!confirmReplace()) return;
+    const imported = importLsl(picked.text);
+    applyWorkspace(imported.state, nameFromFilename(picked.name));
+    toast.success(`Imported ${imported.brickCount} stack${imported.brickCount === 1 ? "" : "s"}`);
+    if (imported.warnings[0]) toast.message(imported.warnings[0]);
   }
 
   function createVar() {
@@ -330,9 +436,13 @@ export function BlockEditor() {
     <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-bg text-fg">
       <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border bg-surface px-3">
         <div className="flex min-w-0 items-center gap-2.5">
-          <span className="grid size-8 place-items-center rounded-md bg-surface-2 ring-1 ring-border">
-            <span className="block h-3.5 w-4 rounded-sm bg-brick" />
-          </span>
+          <FileMenu
+            onNew={fileNew}
+            onOpen={() => void fileOpen()}
+            onSave={fileSave}
+            onSaveAs={() => void fileSaveAs()}
+            onImport={() => void fileImport()}
+          />
           <div className="min-w-0">
             <p className="font-display text-sm font-semibold leading-none tracking-tight">
               PrimBlocks
@@ -375,10 +485,6 @@ export function BlockEditor() {
           <Button variant="ghost" size="sm" onClick={() => setNotecardOpen(true)}>
             <FileText />
             <span className="hidden sm:inline">Notecard</span>
-          </Button>
-          <Button variant="ghost" size="sm" onClick={newScript}>
-            <Plus />
-            <span className="hidden sm:inline">Reset</span>
           </Button>
           <Button variant="ghost" size="sm" onClick={() => setHelpOpen(true)}>
             <BookOpen />
@@ -478,7 +584,8 @@ export function BlockEditor() {
             <DialogTitle>How PrimBlocks compiles</DialogTitle>
             <DialogDescription>
               Yellow hats are events. Snap commands under them. The panel on the right is real LSL.
-              Mouse wheel zooms the grid; drag empty space to pan. New here? Open{" "}
+              Mouse wheel zooms the grid; drag empty space to pan. The yellow brick next to the
+              title is File — New, Open, Save, Save As, Import LSL. New here? Open{" "}
               <strong>Tutorials</strong> — it will not let you skip a brick.{" "}
               <strong>Tips</strong> in the header puts a bubble on each brick you drop.
               Cables (toolbox) draw a noodle between matching send/receive names.

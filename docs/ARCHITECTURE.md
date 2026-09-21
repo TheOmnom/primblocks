@@ -6,10 +6,10 @@ Browser app. React 19 + Vite + Tailwind 4 + Blockly 13 (Zelos renderer). No back
 
 ```
 toolbox.ts  →  Blockly workspace  →  generator.ts  →  assemble.ts  →  .lsl text
-     ↑                  ↑                  ↑
-events.ts          checker.ts         blocks.ts forBlock
-functions.ts       types.ts           functions.ts order[]
-                   validate.ts
+     ↑                  ↑                  ↑                              │
+events.ts          checker.ts         blocks.ts forBlock                 │
+functions.ts       types.ts           functions.ts order[]                ▼
+                   validate.ts        import-lsl.ts  ←  .lsl / .txt  (File → Import)
                    limits.ts
 ```
 

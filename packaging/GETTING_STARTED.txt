@@ -66,6 +66,12 @@ LINUX
 ONCE IT'S OPEN
 ==============
 
+  The yellow brick next to PrimBlocks is the File menu:
+  New, Open, Save, Save As, Import LSL. Save is a .primblocks
+  project (your bricks). Import reads a .lsl / .txt and
+  rebuilds the bricks. Download on the right is still the
+  compiled script you paste in-world.
+
   Tutorials in the header. Basic → Intermediate → Advanced → Expert.
   Next stays grey until the brick it asked for is actually there.
   Done keeps what you built. The X puts the previous stack back.

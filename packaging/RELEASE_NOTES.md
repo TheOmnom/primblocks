@@ -1,4 +1,4 @@
-PrimBlocks 0.2.8
+PrimBlocks 0.2.9
 
 Pick **one** file. You do not need Git or Node.
 
@@ -18,6 +18,6 @@ Pick **one** file. You do not need Git or Node.
 
 Then: **Tutorials** (Basic → Hello, Avatar!) or **Examples → Touch greeter → Copy.** In Second Life: right-click a prim → Build → Content → New Script → paste → Save.
 
-0.2.8: tip jars, wearables, land-drops, and a **Tips** switch (bubble on each brick you drop). Done on a tutorial keeps the stack. Receiving a tip does not need debit permission — splitting one does.
+0.2.9: yellow brick next to the title is the File menu (New / Open / Save / Save As / Import LSL). Import rebuilds bricks from a `.lsl` or `.txt`. Save writes a `.primblocks` project, not the compiled script — that is still Copy / Download on the right.
 
 Walkthrough: packaging/GETTING_STARTED.txt in the repo (also inside the Windows zip).
