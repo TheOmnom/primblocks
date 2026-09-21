@@ -46,4 +46,29 @@ describe("tutorials", () => {
       assert.ok(n >= 3, `${lv.id} only has ${n}`);
     }
   });
+
+  it("first time a brick is required, the step names the left list and the brick", () => {
+    for (const t of TUTORIALS) {
+      const seen = new Set<string>();
+      for (const s of t.steps) {
+        const key = s.expect?.variable
+          ? `var:${s.expect.variable.name}`
+          : s.expect?.type;
+        if (!key) continue;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        assert.ok(
+          s.find && s.find.length > 0,
+          `${t.id} / ${s.title} never says where to find ${key}`,
+        );
+        for (const f of s.find) {
+          assert.match(
+            f,
+            /→/,
+            `${t.id} / ${s.title} find line should be Category → brick: ${f}`,
+          );
+        }
+      }
+    }
+  });
 });
