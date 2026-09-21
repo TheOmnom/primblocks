@@ -8,6 +8,7 @@ Tip jars, wearables, and a Tips switch.
 - **Tips** in the header. Drop a brick, a bubble explains it. Event hats and ll* calls are parsed from the catalog. Control, cables, notecard, pay, attach, and debit are handwritten so the story is not a lie: receiving a tip does **not** need `PERMISSION_DEBIT`. `llGiveMoney` does.
 - Constants → `PAY_DEFAULT` / `PAY_HIDE`. `llSetPayPrice` shadows `PAY_DEFAULT`. `CLICK_ACTION_PAY` was already in the click constants.
 - Matching examples: land drop greeter, tip jar, wearable HUD, worn-or-placed, traveling tip jar, split tips.
+- Flyout scrollbar (Events, Control, the long lists) used to stay painted on the grid after the menu closed. It's gone when the menu is gone. Wheel zoom is unchanged.
 
 Still not every ll* on the wiki. Forced delays still warn. Mouse wheel still zooms.
 

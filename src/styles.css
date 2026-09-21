@@ -82,6 +82,7 @@
   filter: drop-shadow(0 0 1px var(--color-bg));
 }
 
+.blocklyToolbox,
 .blocklyToolboxDiv {
   background: var(--color-surface) !important;
   border-right: 1px solid var(--color-border);
@@ -100,7 +101,8 @@
   border-radius: 8px;
 }
 
-.blocklyTreeLabel {
+.blocklyTreeLabel,
+.blocklyToolboxCategoryLabel {
   font-family: var(--font-sans) !important;
   color: var(--color-fg) !important;
 }
@@ -139,17 +141,25 @@
   overscroll-behavior: none;
 }
 
-/* Main-canvas scrollbars only. Flyout lists still need theirs. */
+/* Main-canvas scrollbars only. Flyout lists still need theirs while the menu is open. */
 .blocklyMainWorkspaceScrollbar {
   display: none !important;
 }
 
+/* Blockly 13 hide() sets the flyout svg to display:none but leaves its
+   scrollbar sibling painted on the grid. Adjacent pair is flyout + bar. */
+.blocklyFlyout[style*="display: none"] + .blocklyFlyoutScrollbar {
+  display: none !important;
+}
+
 @media (max-width: 767px) {
+  .blocklyToolbox,
   .blocklyToolboxDiv {
     width: 5.75rem;
   }
 
-  .blocklyTreeLabel {
+  .blocklyTreeLabel,
+  .blocklyToolboxCategoryLabel {
     font-size: 11px !important;
   }
 }
