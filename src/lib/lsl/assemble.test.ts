@@ -52,6 +52,7 @@ describe("identifiers", () => {
 
   it("rejects keywords", () => {
     assert.equal(sanitizeIdent("state", "x"), "state_");
+    assert.equal(sanitizeIdent("event", "x"), "event_");
     assert.equal(sanitizeIdent("2bad", "x"), "_2bad");
   });
 

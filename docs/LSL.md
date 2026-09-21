@@ -43,7 +43,9 @@ Colors are vectors of 0.0–1.0 per channel, **not** 0–255.
 
 ## Events
 
-Hats emit the official signature, including parameter names the wiki uses (`num_detected`, not `num`). Sensing → "event value" brick reads those names. `llDetected*` is only valid inside touch / collision / sensor.
+Hats emit the official signature, including parameter names the wiki uses (`num_detected`, not `num`). Sensing → "event value" brick reads those names. `llDetected*` is only valid inside touch / collision / sensor / `on_damage` / `final_damage`.
+
+The catalog includes the full wiki event set: classic hats plus Combat 2.0 (`on_damage`, `final_damage`, `on_death`) and `game_control` (needs `PERMISSION_GAME_CONTROL`).
 
 `state_entry` runs on script start, reset, and every time that state is entered. It is first in the queue.
 

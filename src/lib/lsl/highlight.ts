@@ -1,8 +1,8 @@
 const KEYWORD =
-  /\b(default|state|jump|return|if|else|while|do|for|TRUE|FALSE)\b/;
+  /\b(default|state|jump|return|if|else|while|do|for|event|TRUE|FALSE)\b/;
 const TYPE = /\b(integer|float|string|key|vector|rotation|list)\b/;
 const EVENT =
-  /\b(state_entry|state_exit|touch_start|touch_end|touch|collision_start|collision_end|collision|land_collision_start|land_collision_end|land_collision|timer|listen|sensor|no_sensor|control|dataserver|http_response|http_request|link_message|changed|attach|on_rez|object_rez|money|run_time_permissions|experience_permissions_denied|experience_permissions|at_rot_target|not_at_rot_target|at_target|not_at_target|moving_start|moving_end|email|remote_data|transaction_result|path_update|linkset_data)\b/;
+  /\b(state_entry|state_exit|touch_start|touch_end|touch|collision_start|collision_end|collision|land_collision_start|land_collision_end|land_collision|timer|listen|sensor|no_sensor|control|dataserver|http_response|http_request|link_message|changed|attach|on_rez|object_rez|money|run_time_permissions|experience_permissions_denied|experience_permissions|at_rot_target|not_at_rot_target|at_target|not_at_target|moving_start|moving_end|email|remote_data|transaction_result|path_update|linkset_data|on_damage|final_damage|on_death|game_control)\b/;
 const FUNC = /\b(ll[A-Za-z][A-Za-z0-9]*)\b/;
 const CONST = /\b([A-Z][A-Z0-9_]+)\b/;
 const NUMBER = /\b\d+(?:\.\d+)?\b/;

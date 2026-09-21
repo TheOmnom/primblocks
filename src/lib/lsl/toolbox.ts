@@ -61,6 +61,7 @@ export function buildToolbox() {
         block("lsl_return"),
         block("lsl_comment"),
         block("lsl_raw_stmt"),
+        block("lsl_eval"),
       ]),
       cat("Cables", CAT.chat, [
         block("lsl_group", undefined, { NAME: "logic" }),
@@ -170,6 +171,8 @@ export function buildToolbox() {
         block("lsl_const_trim"),
         block("lsl_const_stats"),
         block("lsl_const_eof"),
+        block("lsl_const_damage"),
+        block("lsl_const_gamebtn"),
       ]),
     ],
   };

@@ -9,6 +9,7 @@ export const LSL_KEYWORDS = new Set([
   "while",
   "do",
   "for",
+  "event",
   "TRUE",
   "FALSE",
   "integer",
@@ -61,6 +62,10 @@ export const LSL_EVENTS = [
   "transaction_result",
   "path_update",
   "linkset_data",
+  "on_damage",
+  "final_damage",
+  "on_death",
+  "game_control",
 ] as const;
 
 export type LslEventName = (typeof LSL_EVENTS)[number];

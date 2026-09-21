@@ -1,6 +1,6 @@
 # Review notes
 
-Working `0.2.6`. Wiki was the spec; I have not pasted every example into a live sim yet. Do that before you trust a brick.
+Working `0.2.7`. Wiki was the spec; I have not pasted every example into a live sim yet. Do that before you trust a brick.
 
 Screenshots of the current chrome: [SCREENSHOTS.md](SCREENSHOTS.md).
 
@@ -89,7 +89,7 @@ src/components/code-panel.tsx     highlighted LSL + copy/download
 
 Not pretending these are done:
 
-- **Not every ll\*.** No vehicles, no KFM, no full PRIM_TYPE sculpt/mesh surface, no pathfinding character API (the `path_update` *event* exists), thin experience support (two permission events only), no `llJson*`, no `llHMAC*` / `llSHA256*`, no `llCastRay` extras, no `llGetEnv` / `llGetEnvironment`.
+- **Not every ll\*.** No vehicles, no KFM, no full PRIM_TYPE sculpt/mesh surface, no pathfinding character API (the `path_update` *event* exists), thin experience support (two permission events only), no `llJson*`, no `llHMAC*` / `llSHA256*`, no `llCastRay` extras, no `llGetEnv` / `llGetEnvironment`. Combat 2.0 hats and `llDamage` / `llAdjustDamage` / `llDetectedDamage` / `llGetHealth` are in. `game_control` is in. Catalog is still a working subset, not the whole wiki.
 - **List brick is 4 slots.** Longer lists: empty list + `llListInsertList`, or a raw expression brick.
 - **No jump / label bricks.** LSL has `jump` / `@label`. Use raw LSL.
 - **State change inside a user function** is not blocked at snap time.

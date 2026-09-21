@@ -219,4 +219,27 @@ export const LSL_EVENT_DEFS: EventDef[] = [
     ],
     "Fires for llLinksetDataWrite / Delete / Reset. action is LINKSETDATA_UPDATE, LINKSETDATA_DELETE, or LINKSETDATA_RESET.",
   ),
+  ev(
+    "on_damage",
+    "when damage pending in state %1",
+    [N],
+    "Combat 2.0. Fires before damage is applied. llDetected* plus llDetectedDamage / llAdjustDamage are valid here. Region must allow damage adjustment.",
+  ),
+  ev(
+    "final_damage",
+    "when damage applied in state %1",
+    [N],
+    "Combat 2.0. Fires after every on_damage handler has run and the damage is applied. llDetected* and llDetectedDamage are valid here.",
+  ),
+  ev("on_death", "when this avatar dies in state %1", [], "Combat 2.0. Fires on attachments worn by an avatar when health reaches 0. No parameters."),
+  ev(
+    "game_control",
+    "when gamepad input in state %1",
+    [
+      { type: "key", name: "id" },
+      { type: "integer", name: "button_levels" },
+      { type: "list", name: "axes" },
+    ],
+    "Needs PERMISSION_GAME_CONTROL (auto-granted on attach / sit). button_levels is a GAME_CONTROL_BUTTON_* bitfield. axes is six floats in [-1, 1].",
+  ),
 ];

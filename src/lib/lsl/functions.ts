@@ -28,6 +28,8 @@ export type FnDef = {
   /** LSL call order; defaults to args order */
   order?: string[];
   returns?: LslCheck;
+  /** LSL allows discarding a return. Brick snaps as a statement and emits `call;`. */
+  discardReturn?: boolean;
   tooltip: string;
 };
 
@@ -37,7 +39,7 @@ function fn(
   message: string,
   args: FnArg[],
   tooltip: string,
-  extra?: Partial<Pick<FnDef, "order" | "returns">>,
+  extra?: Partial<Pick<FnDef, "order" | "returns" | "discardReturn">>,
 ): FnDef {
   return {
     type: `lsl_fn_${ll}`,
@@ -100,7 +102,7 @@ const idx: FnArg = { name: "INDEX", check: "Integer", shadow: { kind: "int", val
 
 export const LSL_FUNCTIONS: FnDef[] = [
   // --- Chat ---
-  fn("llSay", "chat", "say %1 on channel %2", [msg(), ch(0)], "llSay(integer channel, string msg) — 20 m, 1024-byte cap.", { order: ["CHANNEL", "MSG"] }),
+  fn("llSay", "chat", "say %1 on channel %2", [msg(), ch(0)], "llSay(integer channel, string msg) — 20 m, 1023-byte cap.", { order: ["CHANNEL", "MSG"] }),
   fn("llWhisper", "chat", "whisper %1 on channel %2", [msg(), ch(0)], "llWhisper(integer channel, string msg) — 10 m.", { order: ["CHANNEL", "MSG"] }),
   fn("llShout", "chat", "shout %1 on channel %2", [msg(), ch(0)], "llShout(integer channel, string msg) — 100 m.", { order: ["CHANNEL", "MSG"] }),
   fn("llRegionSay", "chat", "region-say %1 on channel %2", [msg(), ch(-1)], "llRegionSay(integer channel, string msg) — whole region. Channel 0 is not allowed.", { order: ["CHANNEL", "MSG"] }),
@@ -161,7 +163,7 @@ export const LSL_FUNCTIONS: FnDef[] = [
   fn("llGetRot", "motion", "rotation", [], "llGetRot() returns rotation.", { returns: "Rotation" }),
   fn("llSetLocalRot", "motion", "set local rotation %1", [{ name: "ROT", check: "Rotation", shadow: { kind: "const", block: "lsl_const_zerorot" } }], "llSetLocalRot(rotation rot)."),
   fn("llGetLocalRot", "motion", "local rotation", [], "llGetLocalRot() returns rotation.", { returns: "Rotation" }),
-  fn("llSetRegionPos", "motion", "set region position %1", [vec0], "llSetRegionPos(vector pos) — warp anywhere in the region if the point is valid. Returns integer TRUE/FALSE.", { returns: "Integer" }),
+  fn("llSetRegionPos", "motion", "set region position %1", [vec0], "llSetRegionPos(vector pos) — warp anywhere in the region if the point is valid. Returns integer TRUE/FALSE; this brick discards it (legal LSL).", { returns: "Integer", discardReturn: true }),
   fn("llTargetOmega", "motion", "spin axis %1 rate %2 gain %3", [{ name: "AXIS", check: "Vector", shadow: { kind: "vector", x: 0, y: 0, z: 1 } }, num("RATE", 1), num("GAIN", 1)], "llTargetOmega(vector axis, float spinrate, float gain) — client-side spin if nonphysical; physical uses gain. Rate 0 stops."),
   fn("llMoveToTarget", "motion", "move to %1 with tau %2", [vec0, num("TAU", 0.2)], "llMoveToTarget(vector target, float tau) — physical only. Smaller tau = snappier."),
   fn("llStopMoveToTarget", "motion", "stop move to target", [], "llStopMoveToTarget()."),
@@ -198,8 +200,10 @@ export const LSL_FUNCTIONS: FnDef[] = [
   fn("llGetCreator", "sensing", "creator key", [], "llGetCreator() returns key.", { returns: "Key" }),
   fn("llGetOwnerKey", "sensing", "owner of %1", [keyArg("ID")], "llGetOwnerKey(key id) returns key — owner of the object, or the key itself if it is an avatar.", { returns: "Key" }),
   fn("llKey2Name", "sensing", "name of %1", [keyArg("ID")], "llKey2Name(key id) returns string — empty if the id is not in the region.", { returns: "String" }),
-  fn("llDetectedKey", "sensing", "detected key %1", [idx], "llDetectedKey(integer number) — valid inside touch/collision/sensor events.", { returns: "Key" }),
+  fn("llDetectedKey", "sensing", "detected key %1", [idx], "llDetectedKey(integer number) — valid inside touch/collision/sensor/on_damage/final_damage.", { returns: "Key" }),
   fn("llDetectedName", "sensing", "detected name %1", [idx], "llDetectedName(integer number) returns string.", { returns: "String" }),
+  fn("llDetectedOwner", "sensing", "detected owner %1", [idx], "llDetectedOwner(integer number) returns key of the owner of the detected object or avatar.", { returns: "Key" }),
+  fn("llDetectedGroup", "sensing", "detected same group %1", [idx], "llDetectedGroup(integer number) returns integer TRUE if the detected object/avatar shares the active group.", { returns: "Integer" }),
   fn("llDetectedPos", "sensing", "detected position %1", [idx], "llDetectedPos(integer number) returns vector.", { returns: "Vector" }),
   fn("llDetectedRot", "sensing", "detected rotation %1", [idx], "llDetectedRot(integer number) returns rotation.", { returns: "Rotation" }),
   fn("llDetectedVel", "sensing", "detected velocity %1", [idx], "llDetectedVel(integer number) returns vector.", { returns: "Vector" }),
@@ -212,6 +216,8 @@ export const LSL_FUNCTIONS: FnDef[] = [
   fn("llDetectedTouchFace", "sensing", "touch face %1", [idx], "llDetectedTouchFace(integer number) returns integer face index.", { returns: "Integer" }),
   fn("llDetectedTouchNormal", "sensing", "touch normal %1", [idx], "llDetectedTouchNormal(integer number) returns vector.", { returns: "Vector" }),
   fn("llDetectedTouchBinormal", "sensing", "touch binormal %1", [idx], "llDetectedTouchBinormal(integer number) returns vector.", { returns: "Vector" }),
+  fn("llDetectedDamage", "sensing", "detected damage %1", [idx], "llDetectedDamage(integer number) returns [float damage, integer type, float original]. Valid in on_damage and final_damage.", { returns: "List" }),
+  fn("llDetectedRezzer", "sensing", "detected rezzer %1", [idx], "llDetectedRezzer(integer number) returns key of who rezzed the detected object. Combat 2.0 / detect events.", { returns: "Key" }),
   fn(
     "llSensor",
     "sensing",
@@ -295,25 +301,28 @@ export const LSL_FUNCTIONS: FnDef[] = [
   fn("llGetAttached", "world", "attach point", [], "llGetAttached() returns integer 0 if not attached.", { returns: "Integer" }),
   fn("llHTTPRequest", "world", "HTTP request url %1 params %2 body %3", [str("URL", "https://"), { name: "PARAMS", check: "List" }, str("BODY", "")], "llHTTPRequest(string url, list parameters, string body) returns key request_id — result in http_response. 1 request / 0.5 s / owner / region caps apply.", { returns: "Key" }),
   fn("llHTTPResponse", "world", "HTTP response id %1 status %2 body %3", [keyArg("REQUEST"), num("STATUS", 200, "int"), str("BODY", "OK")], "llHTTPResponse(key request_id, integer status, string body) — reply to http_request."),
-  fn("llRequestURL", "world", "request HTTP-in URL", [], "llRequestURL() returns key — URL arrives via http_request with method URL_REQUEST_GRANTED.", { returns: "Key" }),
-  fn("llRequestSecureURL", "world", "request HTTPS-in URL", [], "llRequestSecureURL() returns key.", { returns: "Key" }),
+  fn("llRequestURL", "world", "request HTTP-in URL", [], "llRequestURL() returns key — URL arrives via http_request with method URL_REQUEST_GRANTED. This brick discards the query key (legal LSL).", { returns: "Key", discardReturn: true }),
+  fn("llRequestSecureURL", "world", "request HTTPS-in URL", [], "llRequestSecureURL() returns key. This brick discards it; the URL still arrives in http_request.", { returns: "Key", discardReturn: true }),
   fn("llReleaseURL", "world", "release URL %1", [str("URL", "")], "llReleaseURL(string url)."),
   fn("llGetNotecardLine", "world", "notecard %1 line %2", [str("NAME", "config"), num("LINE", 0, "int")], "llGetNotecardLine(string name, integer line) returns key queryid — dataserver. 0-based. data == EOF at end.", { returns: "Key" }),
   fn("llGetNumberOfNotecardLines", "world", "notecard line count %1", [str("NAME", "config")], "llGetNumberOfNotecardLines(string name) returns key queryid — dataserver, (integer)data.", { returns: "Key" }),
   fn("llAllowInventoryDrop", "world", "allow inventory drop %1", [{ name: "ADD", check: ["Boolean", "Integer"], shadow: { kind: "const", block: "lsl_const_bool", value: "TRUE" } }], "llAllowInventoryDrop(integer add) — others can drop items; CHANGED_ALLOWED_DROP fires."),
   fn("llPassTouches", "world", "pass touches %1", [{ name: "PASS", check: "Integer", shadow: { kind: "int", value: 1 } }], "llPassTouches(integer pass) — 0 hold, 1 pass after this script, 2 pass even if unhandled."),
   fn("llPassCollisions", "world", "pass collisions %1", [{ name: "PASS", check: "Integer", shadow: { kind: "int", value: 1 } }], "llPassCollisions(integer pass)."),
-  fn("llGiveMoney", "world", "give L$ %1 to %2", [num("AMOUNT", 1, "int"), keyArg("DEST")], "llGiveMoney(key destination, integer amount) returns integer. Needs PERMISSION_DEBIT from the owner.", { order: ["DEST", "AMOUNT"], returns: "Integer" }),
+  fn("llGiveMoney", "world", "give L$ %1 to %2", [num("AMOUNT", 1, "int"), keyArg("DEST")], "llGiveMoney(key destination, integer amount) returns integer. Needs PERMISSION_DEBIT from the owner. This brick discards the return (legal LSL).", { order: ["DEST", "AMOUNT"], returns: "Integer", discardReturn: true }),
   fn("llTeleportAgentHome", "world", "teleport %1 home", [keyArg("AVATAR")], "llTeleportAgentHome(key id) — object owner must be estate manager / land owner."),
   fn("llEjectFromLand", "world", "eject %1 from parcel", [keyArg("AVATAR")], "llEjectFromLand(key avatar) — parcel owner / group abilities required."),
   fn("llBreakAllLinks", "world", "break all links", [], "llBreakAllLinks() — needs PERMISSION_CHANGE_LINKS."),
   fn("llCreateLink", "world", "create link to %1 parent %2", [keyArg("TARGET"), { name: "PARENT", check: ["Boolean", "Integer"], shadow: { kind: "const", block: "lsl_const_bool", value: "TRUE" } }], "llCreateLink(key target, integer parent) — needs PERMISSION_CHANGE_LINKS."),
   fn("llSetLinkPrimitiveParamsFast", "world", "set link params link %1 rules %2", [link, { name: "RULES", check: "List" }], "llSetLinkPrimitiveParamsFast(integer link, list rules) — PRIM_* rules. Preferred over llSetPrimitiveParams (no forced delay)."),
   fn("llGetPrimitiveParams", "world", "get primitive params %1", [{ name: "RULES", check: "List" }], "llGetPrimitiveParams(list params) returns list.", { returns: "List" }),
-  fn("llLinksetDataWrite", "world", "linkset data write %1 = %2", [str("NAME", "key"), str("VALUE", "")], "llLinksetDataWrite(string name, string value) returns integer error code (0 = ok). 128 KiB store shared by the linkset.", { returns: "Integer" }),
+  fn("llLinksetDataWrite", "world", "linkset data write %1 = %2", [str("NAME", "key"), str("VALUE", "")], "llLinksetDataWrite(string name, string value) returns integer error code (0 = ok). 128 KiB store shared by the linkset. This brick discards the code (legal LSL).", { returns: "Integer", discardReturn: true }),
   fn("llLinksetDataRead", "world", "linkset data read %1", [str("NAME", "key")], "llLinksetDataRead(string name) returns string — empty if missing.", { returns: "String" }),
-  fn("llLinksetDataDelete", "world", "linkset data delete %1", [str("NAME", "key")], "llLinksetDataDelete(string name) returns integer.", { returns: "Integer" }),
+  fn("llLinksetDataDelete", "world", "linkset data delete %1", [str("NAME", "key")], "llLinksetDataDelete(string name) returns integer. This brick discards it (legal LSL).", { returns: "Integer", discardReturn: true }),
   fn("llLinksetDataCountKeys", "world", "linkset data key count", [], "llLinksetDataCountKeys() returns integer.", { returns: "Integer" }),
+  fn("llDamage", "world", "damage %1 amount %2 type %3", [keyArg("TARGET"), num("AMOUNT", 10), { name: "DTYPE", check: "Integer", shadow: { kind: "const", block: "lsl_const_damage", value: "DAMAGE_TYPE_GENERIC" } }], "llDamage(key target, float damage, integer damage_type) — Combat 2.0. Negative amount heals. Throttled ~10/30s per recipient."),
+  fn("llAdjustDamage", "world", "adjust damage index %1 to %2", [num("INDEX", 0, "int"), num("AMOUNT", 0)], "llAdjustDamage(integer number, float new_damage) — only legal inside on_damage. Other events shout to DEBUG_CHANNEL."),
+  fn("llGetHealth", "world", "health of %1", [keyArg("ID")], "llGetHealth(key id) returns float current health of an avatar or damageable object in the region.", { returns: "Number" }),
 
   // --- Math (reporters) ---
   fn("llAbs", "operator", "abs %1", [num("VAL", 0, "int")], "llAbs(integer val) returns integer. For floats use llFabs.", { returns: "Integer" }),

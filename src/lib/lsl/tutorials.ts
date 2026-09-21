@@ -486,7 +486,7 @@ export const TUTORIALS: Tutorial[] = [
         title: "Hat + raw",
         toolbox: "Control",
         do: "touch_start, then Control → raw statement. Type real LSL in it, e.g. llOwnerSay((string)llGetUnixTime());",
-        why: "The type checker will not save you. Missing on purpose: vehicles, KFM, llJson*, HMAC, pathfinding. Hover a catalog brick for the wiki signature.",
+        why: "The type checker will not save you. Missing on purpose: vehicles, KFM, llJson*, HMAC. Combat 2.0 hats (on_damage, final_damage, on_death) and game_control are in Events. Hover a catalog brick for the wiki signature.",
         expect: { type: "lsl_raw_stmt", root: "lsl_event_touch_start" },
       },
     ],

@@ -4,7 +4,7 @@ import { CAT } from "./colors";
 import { installDynamicTypes } from "./dynamics";
 import { LSL_EVENT_DEFS } from "./events";
 import { LSL_FUNCTIONS, wikiFn, type ShadowSpec } from "./functions";
-import { lslGenerator, Order, valueCode, wireFunctionGenerators } from "./generator";
+import { lslGenerator, Order, stripIndent, valueCode, wireFunctionGenerators } from "./generator";
 import { lslStringLiteral, sanitizeIdent } from "./reserved";
 import { ncGlobalNames } from "./notecard";
 import { cableIdent, cableNameOf } from "./cables";
@@ -53,7 +53,7 @@ export function registerBlocks() {
       tooltip: fn.tooltip,
       helpUrl: wikiFn(fn.ll),
     };
-    if (fn.returns) def.output = fn.returns;
+    if (fn.returns && !fn.discardReturn) def.output = fn.returns;
     else {
       def.previousStatement = null;
       def.nextStatement = null;
@@ -376,6 +376,17 @@ export function registerBlocks() {
       tooltip: "Escape hatch. Emitted as-is. Use for functions not yet bricked.",
     },
     {
+      type: "lsl_eval",
+      message0: "run %1 (discard return)",
+      args0: [{ type: "input_value", name: "VAL" }],
+      inputsInline: true,
+      previousStatement: null,
+      nextStatement: null,
+      colour: CAT.control,
+      tooltip:
+        "LSL lets you throw away a return value. Snap a reporter (llHTTPRequest, llGetNotecardLine, …) here to emit call;",
+    },
+    {
       type: "lsl_raw_expr",
       message0: "raw expr %1",
       args0: [{ type: "field_input", name: "CODE", text: "TRUE" }],
@@ -615,6 +626,7 @@ export function registerBlocks() {
       ["PERMISSION_CHANGE_LINKS", "PERMISSION_CHANGE_LINKS"],
       ["PERMISSION_OVERRIDE_ANIMATIONS", "PERMISSION_OVERRIDE_ANIMATIONS"],
       ["PERMISSION_RETURN_OBJECTS", "PERMISSION_RETURN_OBJECTS"],
+      ["PERMISSION_GAME_CONTROL", "PERMISSION_GAME_CONTROL"],
     ]),
     constBlock("lsl_const_sensor", "Integer", [
       ["AGENT", "AGENT"],
@@ -623,6 +635,7 @@ export function registerBlocks() {
       ["ACTIVE", "ACTIVE"],
       ["PASSIVE", "PASSIVE"],
       ["SCRIPTED", "SCRIPTED"],
+      ["DAMAGEABLE", "DAMAGEABLE"],
     ]),
     constBlock("lsl_const_inv", "Integer", [
       ["INVENTORY_ALL", "INVENTORY_ALL"],
@@ -687,6 +700,42 @@ export function registerBlocks() {
       ["EOF", "EOF"],
       ["NAK", "NAK"],
     ]),
+    constBlock("lsl_const_damage", "Integer", [
+      ["DAMAGE_TYPE_IMPACT", "DAMAGE_TYPE_IMPACT"],
+      ["DAMAGE_TYPE_GENERIC", "DAMAGE_TYPE_GENERIC"],
+      ["DAMAGE_TYPE_ACID", "DAMAGE_TYPE_ACID"],
+      ["DAMAGE_TYPE_BLUDGEONING", "DAMAGE_TYPE_BLUDGEONING"],
+      ["DAMAGE_TYPE_COLD", "DAMAGE_TYPE_COLD"],
+      ["DAMAGE_TYPE_ELECTRIC", "DAMAGE_TYPE_ELECTRIC"],
+      ["DAMAGE_TYPE_FIRE", "DAMAGE_TYPE_FIRE"],
+      ["DAMAGE_TYPE_FORCE", "DAMAGE_TYPE_FORCE"],
+      ["DAMAGE_TYPE_NECROTIC", "DAMAGE_TYPE_NECROTIC"],
+      ["DAMAGE_TYPE_PIERCING", "DAMAGE_TYPE_PIERCING"],
+      ["DAMAGE_TYPE_POISON", "DAMAGE_TYPE_POISON"],
+      ["DAMAGE_TYPE_PSYCHIC", "DAMAGE_TYPE_PSYCHIC"],
+      ["DAMAGE_TYPE_RADIANT", "DAMAGE_TYPE_RADIANT"],
+      ["DAMAGE_TYPE_SLASHING", "DAMAGE_TYPE_SLASHING"],
+      ["DAMAGE_TYPE_SONIC", "DAMAGE_TYPE_SONIC"],
+      ["DAMAGE_TYPE_EMOTIONAL", "DAMAGE_TYPE_EMOTIONAL"],
+    ]),
+    constBlock("lsl_const_gamebtn", "Integer", [
+      ["GAME_CONTROL_BUTTON_A", "GAME_CONTROL_BUTTON_A"],
+      ["GAME_CONTROL_BUTTON_B", "GAME_CONTROL_BUTTON_B"],
+      ["GAME_CONTROL_BUTTON_X", "GAME_CONTROL_BUTTON_X"],
+      ["GAME_CONTROL_BUTTON_Y", "GAME_CONTROL_BUTTON_Y"],
+      ["GAME_CONTROL_BUTTON_SOUTH", "GAME_CONTROL_BUTTON_SOUTH"],
+      ["GAME_CONTROL_BUTTON_EAST", "GAME_CONTROL_BUTTON_EAST"],
+      ["GAME_CONTROL_BUTTON_WEST", "GAME_CONTROL_BUTTON_WEST"],
+      ["GAME_CONTROL_BUTTON_NORTH", "GAME_CONTROL_BUTTON_NORTH"],
+      ["GAME_CONTROL_BUTTON_START", "GAME_CONTROL_BUTTON_START"],
+      ["GAME_CONTROL_BUTTON_BACK", "GAME_CONTROL_BUTTON_BACK"],
+      ["GAME_CONTROL_BUTTON_LEFTSHOULDER", "GAME_CONTROL_BUTTON_LEFTSHOULDER"],
+      ["GAME_CONTROL_BUTTON_RIGHTSHOULDER", "GAME_CONTROL_BUTTON_RIGHTSHOULDER"],
+      ["GAME_CONTROL_BUTTON_DPAD_UP", "GAME_CONTROL_BUTTON_DPAD_UP"],
+      ["GAME_CONTROL_BUTTON_DPAD_DOWN", "GAME_CONTROL_BUTTON_DPAD_DOWN"],
+      ["GAME_CONTROL_BUTTON_DPAD_LEFT", "GAME_CONTROL_BUTTON_DPAD_LEFT"],
+      ["GAME_CONTROL_BUTTON_DPAD_RIGHT", "GAME_CONTROL_BUTTON_DPAD_RIGHT"],
+    ]),
     {
       type: "lsl_param",
       message0: "event value %1",
@@ -711,6 +760,8 @@ export function registerBlocks() {
           ["status", "status"],
           ["body", "body"],
           ["method", "method"],
+          ["button_levels", "button_levels"],
+          ["axes", "axes"],
         ]),
       ],
       output: null,
@@ -1000,6 +1051,10 @@ export function registerBlocks() {
     if (code && !code.endsWith(";") && !code.endsWith("}")) code += ";";
     return code ? `${code}\n` : "";
   };
+  lslGenerator.forBlock.lsl_eval = (block, g) => {
+    const v = g.valueToCode(block, "VAL", Order.NONE) || "0";
+    return `${v};\n`;
+  };
   lslGenerator.forBlock.lsl_raw_expr = (block) => [
     String(block.getFieldValue("CODE") || "0"),
     Order.ATOMIC,
@@ -1108,7 +1163,7 @@ export function registerBlocks() {
 
   lslGenerator.forBlock.lsl_group = (block, g) => {
     const name = String(block.getFieldValue("NAME") || "group").trim() || "group";
-    const body = g.statementToCode(block, "DO");
+    const body = stripIndent(String(g.statementToCode(block, "DO") || ""));
     return `// group ${name}\n${body}`;
   };
   lslGenerator.forBlock.lsl_cable_send = (block, g) => {
@@ -1141,6 +1196,8 @@ export function registerBlocks() {
     "lsl_const_trim",
     "lsl_const_stats",
     "lsl_const_eof",
+    "lsl_const_damage",
+    "lsl_const_gamebtn",
   ];
   for (const t of constTypes) {
     lslGenerator.forBlock[t] = (block) => [String(block.getFieldValue("VAL")), Order.ATOMIC];

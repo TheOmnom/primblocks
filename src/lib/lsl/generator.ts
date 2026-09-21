@@ -54,7 +54,7 @@ export function valueCode(
 }
 
 /** statementToCode pads with INDENT; the notecard merger re-indents itself. */
-function stripIndent(src: string): string {
+export function stripIndent(src: string): string {
   const text = String(src || "").replace(/\s+$/g, "");
   if (!text) return "";
   const lines = text.split("\n");
@@ -168,7 +168,7 @@ export function wireFunctionGenerators() {
         return generator.valueToCode(block, n, Order.NONE) || fb;
       });
       const call = `${fn.ll}(${vals.join(", ")})`;
-      if (fn.returns) return [call, Order.FUNCTION_CALL];
+      if (fn.returns && !fn.discardReturn) return [call, Order.FUNCTION_CALL];
       return `${call};\n`;
     };
   }

@@ -205,6 +205,18 @@ export function validateWorkspace(workspace: Workspace): Diagnostic[] {
         push(out, block, h);
       }
 
+      if (fn.ll === "llAdjustDamage") {
+        const ev = ancestorEvent(block);
+        const id = ev ? eventIdFromType(ev.type) : null;
+        if (id !== "on_damage") {
+          push(out, block, {
+            severity: "warning",
+            kind: "rule",
+            message: "llAdjustDamage only works inside on_damage — the sim shouts to DEBUG_CHANNEL otherwise.",
+          });
+        }
+      }
+
       if (DETECTED_FNS.has(fn.ll)) {
         const ev = ancestorEvent(block);
         const id = ev ? eventIdFromType(ev.type) : null;
@@ -212,19 +224,25 @@ export function validateWorkspace(workspace: Workspace): Diagnostic[] {
           push(out, block, {
             severity: "warning",
             kind: "rule",
-            message: `${fn.ll} is only valid inside touch, collision, or sensor events.`,
+            message: `${fn.ll} is only valid inside touch, collision, sensor, or combat damage events.`,
           });
         } else if (!DETECTION_EVENTS.has(id)) {
           push(out, block, {
             severity: "warning",
             kind: "rule",
-            message: `${fn.ll} returns empty data outside touch / collision / sensor (currently in ${id}).`,
+            message: `${fn.ll} returns empty data outside touch / collision / sensor / on_damage / final_damage (currently in ${id}).`,
           });
         } else if (TOUCH_ONLY_FNS.has(fn.ll) && !TOUCH_EVENTS.has(id)) {
           push(out, block, {
             severity: "warning",
             kind: "rule",
             message: `${fn.ll} is only meaningful in touch_start / touch / touch_end.`,
+          });
+        } else if (fn.ll === "llDetectedDamage" && id !== "on_damage" && id !== "final_damage") {
+          push(out, block, {
+            severity: "warning",
+            kind: "rule",
+            message: "llDetectedDamage returns [] outside on_damage / final_damage.",
           });
         }
       }

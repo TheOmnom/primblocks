@@ -2,7 +2,7 @@
 
 Generated from `src/lib/lsl/events.ts` and `src/lib/lsl/functions.ts`. Do not hand-edit — `npm run catalog`.
 
-Events: **39**. ll* bricks: **222**.
+Events: **43**. ll* bricks: **229**.
 
 Hover a brick in the editor for the wiki URL. Event signatures below are what the yellow hats emit.
 
@@ -51,6 +51,10 @@ Every yellow hat has a **state** field (default `default`). Body snaps underneat
 | `transaction_result` | `transaction_result(key id, integer success, string data)` |
 | `path_update` | `path_update(integer type, list reserved)` |
 | `linkset_data` | `linkset_data(integer action, string name, string value)` |
+| `on_damage` | `on_damage(integer num_detected)` |
+| `final_damage` | `final_damage(integer num_detected)` |
+| `on_death` | `on_death()` |
+| `game_control` | `game_control(key id, integer button_levels, list axes)` |
 
 Wiki: `https://wiki.secondlife.com/wiki/<EventName>` (first letter capitalised).
 
@@ -67,7 +71,7 @@ Wiki: `https://wiki.secondlife.com/wiki/<EventName>` (first letter capitalised).
 | `llRegionSayTo` (command) | region-say … to … on channel … | — |
 | `llOwnerSay` (command) | owner-say … | — |
 | `llInstantMessage` (command) | IM … to … | 2s |
-| `llListen` (reporter) | listen on channel … from name … key … message … | — |
+| `llListen` (command) | listen on channel … from name … key … message … | — |
 | `llListenRemove` (command) | remove listen … | — |
 | `llListenControl` (command) | set listen … active … | — |
 | `llDialog` (command) | dialog to … message … buttons … channel … | 1s |
@@ -155,6 +159,8 @@ Wiki: `https://wiki.secondlife.com/wiki/<EventName>` (first letter capitalised).
 | `llKey2Name` (reporter) | name of … | — |
 | `llDetectedKey` (reporter) | detected key … | — |
 | `llDetectedName` (reporter) | detected name … | — |
+| `llDetectedOwner` (reporter) | detected owner … | — |
+| `llDetectedGroup` (reporter) | detected same group … | — |
 | `llDetectedPos` (reporter) | detected position … | — |
 | `llDetectedRot` (reporter) | detected rotation … | — |
 | `llDetectedVel` (reporter) | detected velocity … | — |
@@ -167,6 +173,8 @@ Wiki: `https://wiki.secondlife.com/wiki/<EventName>` (first letter capitalised).
 | `llDetectedTouchFace` (reporter) | touch face … | — |
 | `llDetectedTouchNormal` (reporter) | touch normal … | — |
 | `llDetectedTouchBinormal` (reporter) | touch binormal … | — |
+| `llDetectedDamage` (reporter) | detected damage … | — |
+| `llDetectedRezzer` (reporter) | detected rezzer … | — |
 | `llSensor` (command) | sensor name … key … type … range … arc … | — |
 | `llSensorRepeat` (command) | repeat sensor name … key … type … range … arc … rate … | — |
 | `llSensorRemove` (command) | remove sensor | — |
@@ -247,6 +255,9 @@ Wiki: `https://wiki.secondlife.com/wiki/<EventName>` (first letter capitalised).
 | `llLinksetDataRead` (reporter) | linkset data read … | — |
 | `llLinksetDataDelete` (reporter) | linkset data delete … | — |
 | `llLinksetDataCountKeys` (reporter) | linkset data key count | — |
+| `llDamage` (command) | damage … amount … type … | — |
+| `llAdjustDamage` (command) | adjust damage index … to … | — |
+| `llGetHealth` (reporter) | health of … | — |
 
 ### Operators
 

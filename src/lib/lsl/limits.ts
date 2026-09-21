@@ -296,6 +296,8 @@ export function inspectCall(ll: string, args: Record<string, LiteralBag | undefi
 export const DETECTED_FNS = new Set([
   "llDetectedKey",
   "llDetectedName",
+  "llDetectedOwner",
+  "llDetectedGroup",
   "llDetectedPos",
   "llDetectedRot",
   "llDetectedVel",
@@ -308,6 +310,8 @@ export const DETECTED_FNS = new Set([
   "llDetectedTouchFace",
   "llDetectedTouchNormal",
   "llDetectedTouchBinormal",
+  "llDetectedDamage",
+  "llDetectedRezzer",
 ]);
 
 export const DETECTION_EVENTS = new Set([
@@ -318,6 +322,8 @@ export const DETECTION_EVENTS = new Set([
   "collision",
   "collision_end",
   "sensor",
+  "on_damage",
+  "final_damage",
 ]);
 
 export const TOUCH_ONLY_FNS = new Set([
