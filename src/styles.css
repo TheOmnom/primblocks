@@ -146,8 +146,7 @@
   display: none !important;
 }
 
-/* Blockly 13 hide() sets the flyout svg to display:none but leaves its
-   scrollbar sibling painted on the grid. Adjacent pair is flyout + bar. */
+/* leftover flyout bar after the menu closes */
 .blocklyFlyout[style*="display: none"] + .blocklyFlyoutScrollbar {
   display: none !important;
 }

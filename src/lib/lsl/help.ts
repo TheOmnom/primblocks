@@ -1,7 +1,7 @@
 import { LSL_EVENT_DEFS } from "./events.ts";
 import { LSL_FUNCTIONS } from "./functions.ts";
 
-/** One card of guidance for a brick that just landed on the workspace. */
+/** Bubble copy for a brick. */
 export type BrickHelp = {
   type: string;
   title: string;
@@ -11,7 +11,7 @@ export type BrickHelp = {
 
 type Extra = { title: string; tip: string; why: string };
 
-/** Hand copy for bricks that are not ll* / events. Catalog tooltips fill the rest. */
+/** Control / cables / notecard / pay — catalog tooltips fill the rest. */
 const EXTRA: Record<string, Extra> = {
   lsl_if: {
     title: "if",
