@@ -18,6 +18,12 @@ Pick **one** file. You do not need Git or Node.
 
 Then: **Tutorials** (Basic → Hello, Avatar!) or **Examples → Touch greeter → Copy.** In Second Life: right-click a prim → Build → Content → New Script → paste → Save.
 
-0.2.9: yellow brick next to the title is the File menu (New / Open / Save / Save As / Import LSL). Import rebuilds bricks from a `.lsl` or `.txt`. Save writes a `.primblocks` project, not the compiled script — that is still Copy / Download on the right.
+Since 0.2.6:
+
+- Yellow brick next to the title is the File menu (New / Open / Save / Save As / Import LSL). Import rebuilds bricks from a `.lsl` or `.txt`. Save writes a `.primblocks` project — Copy / Download on the right is still the compiled script.
+- Tip jar, wearable, land-drop, and worn+placed walkthroughs. Tutorials name the left-list category and the brick as it is printed (Events → **when touched**, not `touch_start`).
+- **Tips** in the header. Drop a brick, get a bubble.
+- Wiki event set: Combat 2.0 hats and `game_control`. Calls that people fire as statements (`llGiveMoney`, `llSetRegionPos`, …) snap under a hat.
+- Mouse wheel zooms. Flyout scrollbar goes away when the menu closes. Cables go around bricks instead of through them.
 
 Walkthrough: packaging/GETTING_STARTED.txt in the repo (also inside the Windows zip).

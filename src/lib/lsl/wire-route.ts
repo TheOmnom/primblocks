@@ -222,8 +222,9 @@ export function routeCable(from: Pt, to: Pt, obstacles: Rect[]): CableRoute {
   for (let n = 0; n < 12; n++) {
     const hits = n === 0 ? obs.filter((o) => cubicHits(from, to, [o])) : pathHits(pts, obs);
     if (!hits.length) break;
-    cluster = hits.reduce((acc, o) => (acc ? unionRect(acc, o) : o), cluster);
-    pts = aroundPoints(from, to, cluster!);
+    const merged = hits.reduce((acc, o) => unionRect(acc, o));
+    cluster = cluster ? unionRect(cluster, merged) : merged;
+    pts = aroundPoints(from, to, cluster);
   }
 
   return { d: roundedPath(pts), samples: densify(pts), kind: "around" };
