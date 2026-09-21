@@ -35,7 +35,7 @@ Not a full LSL IDE. The catalog is the events + the ll* calls you actually use f
 
 - **File** — yellow brick next to the title. New, Open, Save, Save As (`.primblocks` project), Import LSL (rebuilds bricks from a `.lsl` / `.txt`)
 - **Puzzle bricks** — Blockly 13, colored C-hats, toolbox categories
-- **Cables** — named send/receive between groups, noodle drawn on the workspace, compiles to a typed global
+- **Cables** — named send/receive between groups. The noodle sits on top of bricks and goes around a stack that is in the way. Compiles to a typed global
 - **Presets** — save the current workspace in this browser / the desktop profile. Nothing is uploaded
 - **Tutorials** — basic / intermediate / advanced / expert. Empty workspace, one brick at a time, Next stays off until that brick is there. Done keeps the stack. X puts the parked one back. Tip jar, wearable, land-drop, and worn+placed are in there.
 - **Tips** — header switch. Drop a brick, get a bubble. Off by default.

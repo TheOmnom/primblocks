@@ -7,7 +7,7 @@ import { generateLsl } from "./generator";
 import { primTheme } from "./theme";
 import { buildToolbox } from "./toolbox";
 import { applyBlockWarnings, diagKey, validateWorkspace, type Diagnostic } from "./validate";
-import { attachWireLayer } from "./wires-layer";
+import { attachWireLayer, redrawWires } from "./wires-layer";
 
 Blockly.setLocale(En as unknown as { [key: string]: string });
 
@@ -208,7 +208,7 @@ export function loadState(workspace: Blockly.WorkspaceSvg, state: object, opts?:
   Blockly.svgResize(workspace);
   if (!opts?.keepFlyout) hideFlyout(workspace);
   try {
-    workspace.cleanUp();
+    redrawWires(workspace);
   } catch {
     /* */
   }

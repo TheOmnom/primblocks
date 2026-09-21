@@ -9,7 +9,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test src/lib/lsl/assemble.test.ts src/lib/lsl/types.test.ts src/lib/lsl/notecard.test.ts src/lib/lsl/cables.test.ts src/lib/lsl/tutorials.test.ts src/lib/lsl/help.test.ts src/lib/lsl/project.test.ts src/lib/lsl/import-lsl.test.ts src/lib/update.test.ts",
+    "test": "node --experimental-strip-types --test src/lib/lsl/assemble.test.ts src/lib/lsl/types.test.ts src/lib/lsl/notecard.test.ts src/lib/lsl/cables.test.ts src/lib/lsl/wire-route.test.ts src/lib/lsl/tutorials.test.ts src/lib/lsl/help.test.ts src/lib/lsl/project.test.ts src/lib/lsl/import-lsl.test.ts src/lib/update.test.ts",
     "smoke:examples": "npx --yes vite-node scripts/smoke-examples.ts",
     "catalog": "node --experimental-strip-types scripts/write-catalog.ts",
     "tauri": "tauri",

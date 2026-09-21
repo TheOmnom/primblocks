@@ -8,6 +8,7 @@ File menu on the yellow brick.
 - Save writes a `.primblocks` project (bricks, script name, notecard). Open reads it back. The right-hand **Download** is still the compiled `.lsl`.
 - **Import LSL** takes a `.lsl` or `.txt` and rebuilds bricks from the script. Calls we do not have a brick for land in a raw LSL brick so nothing is thrown away.
 - **New** is an empty stack. The greeter lives under Examples. The old Reset button is gone.
+- Cables sit on top of bricks. Move a stack onto a noodle and the cable goes around it, not through. Open keeps the bricks where you left them.
 
 Shortcuts: Ctrl+N / O / S. Ctrl+Shift+S is Save As, Ctrl+Shift+O is Import. On a Mac that is ⌘.
 

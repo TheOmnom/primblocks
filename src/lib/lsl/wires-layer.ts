@@ -2,6 +2,7 @@ import type { WorkspaceSvg } from "blockly/core";
 import * as Blockly from "blockly/core";
 import { CAT } from "./colors";
 import { cableNameOf, matchingRecvs } from "./cables";
+import { routeCable, unionRect, type Rect } from "./wire-route";
 
 const STROKE: Record<string, string> = {
   Integer: CAT.variable,
@@ -30,9 +31,35 @@ function anchor(block: Blockly.BlockSvg, side: "in" | "out"): { x: number; y: nu
   };
 }
 
-function cubic(a: { x: number; y: number }, b: { x: number; y: number }): string {
-  const dx = Math.max(40, Math.abs(b.x - a.x) * 0.45);
-  return `M ${a.x} ${a.y} C ${a.x + dx} ${a.y}, ${b.x - dx} ${b.y}, ${b.x} ${b.y}`;
+function containsBlock(root: Blockly.Block, target: Blockly.Block): boolean {
+  if (root.id === target.id) return true;
+  return root.getDescendants(false).some((b) => b.id === target.id);
+}
+
+function stackRect(root: Blockly.BlockSvg): Rect | null {
+  let r: Rect | null = null;
+  for (const b of root.getDescendants(false)) {
+    if (b.isShadow?.() || b.isInsertionMarker?.()) continue;
+    const svg = b as Blockly.BlockSvg;
+    const xy = svg.getRelativeToSurfaceXY?.();
+    const hw = svg.getHeightWidth?.();
+    if (!xy || !hw || hw.width < 4 || hw.height < 4) continue;
+    const box = { x: xy.x, y: xy.y, w: hw.width, h: hw.height };
+    r = r ? unionRect(r, box) : box;
+  }
+  return r;
+}
+
+/** Other stacks on the board. The send/receive hats may sit under the noodle. */
+function obstaclesFor(workspace: WorkspaceSvg, send: Blockly.Block, recv: Blockly.Block): Rect[] {
+  const out: Rect[] = [];
+  for (const top of workspace.getTopBlocks(false)) {
+    if (top.isShadow?.() || top.isInsertionMarker?.()) continue;
+    if (containsBlock(top, send) || containsBlock(top, recv)) continue;
+    const r = stackRect(top as Blockly.BlockSvg);
+    if (r) out.push(r);
+  }
+  return out;
 }
 
 function ensureLayer(workspace: WorkspaceSvg): SVGElement | null {
@@ -43,9 +70,39 @@ function ensureLayer(workspace: WorkspaceSvg): SVGElement | null {
   let g = canvas.querySelector("#prim-wires") as SVGGElement | null;
   if (!g) {
     g = Blockly.utils.dom.createSvgElement("g", { id: "prim-wires" }, null) as SVGGElement;
-    canvas.insertBefore(g, canvas.firstChild);
+    canvas.appendChild(g);
+  } else if (canvas.lastChild !== g) {
+    canvas.appendChild(g);
   }
   return g;
+}
+
+function addPath(layer: SVGElement, d: string, color: string) {
+  Blockly.utils.dom.createSvgElement(
+    "path",
+    {
+      d,
+      class: "prim-wire-halo",
+      fill: "none",
+      "pointer-events": "none",
+    },
+    layer,
+  );
+  Blockly.utils.dom.createSvgElement(
+    "path",
+    {
+      d,
+      class: "prim-wire",
+      stroke: color,
+      fill: "none",
+      "stroke-width": "3.5",
+      "stroke-linecap": "round",
+      "stroke-linejoin": "round",
+      "pointer-events": "none",
+      opacity: "0.95",
+    },
+    layer,
+  );
 }
 
 export function redrawWires(workspace: WorkspaceSvg) {
@@ -67,20 +124,8 @@ export function redrawWires(workspace: WorkspaceSvg) {
       const key = `${send.id}->${recv.id}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      Blockly.utils.dom.createSvgElement(
-        "path",
-        {
-          d: cubic(from, to),
-          class: "prim-wire",
-          stroke: color,
-          fill: "none",
-          "stroke-width": "3.5",
-          "stroke-linecap": "round",
-          "pointer-events": "none",
-          opacity: "0.88",
-        },
-        layer,
-      );
+      const route = routeCable(from, to, obstaclesFor(workspace, send, recv));
+      if (route.d) addPath(layer, route.d, color);
     }
   }
 }

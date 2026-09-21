@@ -78,8 +78,18 @@
   stroke: none !important;
 }
 
+.prim-wire-halo {
+  fill: none;
+  stroke: var(--color-bg);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+  opacity: 0.92;
+}
+
 .prim-wire {
-  filter: drop-shadow(0 0 1px var(--color-bg));
+  pointer-events: none;
 }
 
 .blocklyToolbox,
