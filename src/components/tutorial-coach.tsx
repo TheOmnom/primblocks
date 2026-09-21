@@ -1,6 +1,6 @@
 import type { WorkspaceSvg } from "blockly/core";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { useEffect } from "react";
+import { ChevronLeft, ChevronRight, GripHorizontal, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { stepSatisfied, type Tutorial } from "@/lib/lsl/tutorials";
 import { cn } from "@/lib/utils";
@@ -17,6 +17,27 @@ type Props = {
   onFinish: () => void;
 };
 
+type Pos = { x: number; y: number };
+
+type Drag = {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  origX: number;
+  origY: number;
+};
+
+function clampToParent(el: HTMLElement, x: number, y: number): Pos {
+  const parent = el.offsetParent as HTMLElement | null;
+  if (!parent) return { x, y };
+  const maxX = Math.max(8, parent.clientWidth - el.offsetWidth - 8);
+  const maxY = Math.max(8, parent.clientHeight - el.offsetHeight - 8);
+  return {
+    x: Math.min(maxX, Math.max(8, x)),
+    y: Math.min(maxY, Math.max(8, y)),
+  };
+}
+
 export function TutorialCoach({
   tutorial,
   stepIndex,
@@ -32,6 +53,10 @@ export function TutorialCoach({
   const last = stepIndex >= tutorial.steps.length - 1;
   const done = !step || !workspace ? false : stepSatisfied(workspace, step);
   const canNext = !step?.expect || done;
+  const cardRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<Drag | null>(null);
+  const [pos, setPos] = useState<Pos | null>(null);
+  const [dragging, setDragging] = useState(false);
 
   useEffect(() => {
     if (step?.toolbox) onOpenCategory(step.toolbox);
@@ -41,19 +66,84 @@ export function TutorialCoach({
     onHighlight(done ? step?.expect?.type : undefined);
   }, [done, step?.expect?.type, tick, onHighlight]);
 
+  useEffect(() => {
+    if (!pos) return;
+    const el = cardRef.current;
+    if (!el) return;
+    setPos((p) => (p ? clampToParent(el, p.x, p.y) : p));
+  }, [stepIndex]);
+
+  function onHandlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    if (e.button !== 0) return;
+    if ((e.target as HTMLElement).closest("button")) return;
+    const el = cardRef.current;
+    if (!el) return;
+    const parent = el.offsetParent as HTMLElement | null;
+    if (!parent) return;
+    const rect = el.getBoundingClientRect();
+    const prect = parent.getBoundingClientRect();
+    const origX = rect.left - prect.left;
+    const origY = rect.top - prect.top;
+    setPos({ x: origX, y: origY });
+    dragRef.current = {
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      origX,
+      origY,
+    };
+    setDragging(true);
+    el.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  }
+
+  function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    const d = dragRef.current;
+    const el = cardRef.current;
+    if (!d || !el || d.pointerId !== e.pointerId) return;
+    setPos(clampToParent(el, d.origX + (e.clientX - d.startX), d.origY + (e.clientY - d.startY)));
+  }
+
+  function endDrag(e: React.PointerEvent<HTMLDivElement>) {
+    const d = dragRef.current;
+    if (!d || d.pointerId !== e.pointerId) return;
+    dragRef.current = null;
+    setDragging(false);
+  }
+
   if (!step) return null;
 
   return (
-    <div className="pointer-events-auto absolute bottom-3 left-3 z-20 flex w-[min(26rem,calc(100%-1.5rem))] flex-col gap-2 rounded-xl border border-border bg-surface/95 p-3 shadow-xl backdrop-blur-sm sm:left-[8.2rem]">
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="text-[11px] text-muted">
-            {tutorial.title}
-            <span className="ml-2 tabular-nums">
-              Step {stepIndex + 1} of {tutorial.steps.length}
-            </span>
-          </p>
-          <p className="font-display text-sm font-semibold">{step.title}</p>
+    <div
+      ref={cardRef}
+      className={cn(
+        "pointer-events-auto absolute z-20 flex w-[min(26rem,calc(100%-1.5rem))] flex-col gap-2 rounded-xl border border-border bg-surface/95 p-3 shadow-xl backdrop-blur-sm",
+        pos ? "" : "bottom-3 left-3 sm:left-[8.2rem]",
+      )}
+      style={pos ? { left: pos.x, top: pos.y } : undefined}
+      onPointerMove={onPointerMove}
+      onPointerUp={endDrag}
+      onPointerCancel={endDrag}
+    >
+      <div
+        className={cn(
+          "flex items-start justify-between gap-2 select-none",
+          dragging ? "cursor-grabbing" : "cursor-grab",
+        )}
+        onPointerDown={onHandlePointerDown}
+        title="Drag to move"
+      >
+        <div className="flex min-w-0 items-start gap-2">
+          <GripHorizontal className="mt-0.5 size-4 shrink-0 text-muted" aria-hidden />
+          <div className="min-w-0">
+            <p className="text-[11px] text-muted">
+              {tutorial.title}
+              <span className="ml-2 tabular-nums">
+                Step {stepIndex + 1} of {tutorial.steps.length}
+              </span>
+            </p>
+            <p className="font-display text-sm font-semibold">{step.title}</p>
+          </div>
         </div>
         <button
           type="button"

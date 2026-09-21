@@ -1,5 +1,9 @@
 # Changes
 
+## 0.2.10
+
+The tutorial card sat on the bricks it was talking about. Drag the title bar (grip on the left) to move it. It stays put for the rest of that walkthrough.
+
 ## 0.2.9
 
 File menu on the yellow brick.

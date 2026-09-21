@@ -1,4 +1,4 @@
-PrimBlocks 0.2.9
+PrimBlocks 0.2.10
 
 Pick **one** file. You do not need Git or Node.
 
@@ -20,6 +20,7 @@ Then: **Tutorials** (Basic → Hello, Avatar!) or **Examples → Touch greeter �
 
 Since 0.2.6:
 
+- Tutorial card: drag the title bar so it is not sitting on the bricks.
 - Yellow brick next to the title is the File menu (New / Open / Save / Save As / Import LSL). Import rebuilds bricks from a `.lsl` or `.txt`. Save writes a `.primblocks` project — Copy / Download on the right is still the compiled script.
 - Tip jar, wearable, land-drop, and worn+placed walkthroughs. Tutorials name the left-list category and the brick as it is printed (Events → **when touched**, not `touch_start`).
 - **Tips** in the header. Drop a brick, get a bubble.
