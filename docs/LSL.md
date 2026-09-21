@@ -123,9 +123,19 @@ The World → “read notecard” hat is **not** an LSL event. The generator inj
 
 Drop the notecard in the **same prim** as the script. Inventory name must match the brick.
 
-## Money / permissions
+## Money / permissions / attach
 
-`PERMISSION_DEBIT` is owner-only. `llGiveMoney` needs it. Animations / controls / attach need the matching `PERMISSION_*` from the seated or wearing avatar. Result lands in `run_time_permissions`.
+Paying an object (`llSetPayPrice`, Pay pie) deposits L$ on the **owner**. The `money(key id, integer amount)` event is the receipt. `id` is the payer. `amount` is this pay. Sensing → event value reads those names. `llDetected*` is the wrong family and compiles to empty data here.
+
+You do **not** need `PERMISSION_DEBIT` to receive a tip. Debit is the other direction: `llGiveMoney` (owner paying someone else). Only the owner can grant it. The answer arrives in `run_time_permissions(integer perm)`. Test `perm & PERMISSION_DEBIT`, not `&&`.
+
+`PAY_DEFAULT` shows the pie. `PAY_HIDE` hides it (HUDs). Four quick amounts; a fifth is ignored. `CLICK_ACTION_PAY` makes left-click Pay. For Sale in the build window is a different pie — leave it off for a jar.
+
+`attach(key id)` — avatar key going on, `NULL_KEY` coming off. `llGetAttached()` is 0 on the ground, a HUD or body point otherwise. Worn scripts should `llOwnerSay`, not Nearby.
+
+`on_rez` + `llResetScript()` is the usual land-drop / wear start so `state_entry` runs clean.
+
+`CHANGED_OWNER` tests are `change & CHANGED_OWNER`. Sell the jar without that and the old total stays.
 
 ## What LSL will still reject even if we emit it
 

@@ -6,11 +6,13 @@ import {
   FileText,
   FolderOpen,
   GraduationCap,
+  Lightbulb,
   Plus,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { CodePanel } from "@/components/code-panel";
+import { HelpBubble } from "@/components/help-bubble";
 import { NotecardEditor } from "@/components/notecard-editor";
 import { PresetsDialog } from "@/components/presets-dialog";
 import { TutorialCoach } from "@/components/tutorial-coach";
@@ -34,10 +36,12 @@ import { tutorialById, type Tutorial } from "@/lib/lsl/tutorials";
 import type { Diagnostic } from "@/lib/lsl/validate";
 import {
   clearTutorialScratch,
+  loadHelpMode,
   loadNotecard,
   loadScriptName,
   loadTutorialScratch,
   loadWorkspaceState,
+  saveHelpMode,
   saveNotecard,
   savePreset,
   saveScriptName,
@@ -70,6 +74,9 @@ export function BlockEditor() {
   const [presetsOpen, setPresetsOpen] = useState(false);
   const [coachId, setCoachId] = useState<string | null>(null);
   const [coachStep, setCoachStep] = useState(0);
+  const [helpMode, setHelpMode] = useState(false);
+  const [helpBlockId, setHelpBlockId] = useState<string | null>(null);
+  const helpModeRef = useRef(false);
   const [notecardOpen, setNotecardOpen] = useState(false);
   const [notecard, setNotecard] = useState<NotecardDoc>(greeterNotecard);
   const [varOpen, setVarOpen] = useState(false);
@@ -101,6 +108,10 @@ export function BlockEditor() {
         onCreateVariable: () => setVarOpen(true),
         onSnapReject: (message) => toast.error(message),
         onLimitWarn: (message) => toast.warning(message),
+        onBlockPlaced: (block) => {
+          if (!helpModeRef.current) return;
+          setHelpBlockId(block.id);
+        },
       });
       if (cancelled) {
         ws.dispose();
@@ -144,6 +155,16 @@ export function BlockEditor() {
     const id = window.setInterval(persist, 1200);
     return () => window.clearInterval(id);
   }, [persist]);
+
+  useEffect(() => {
+    const on = loadHelpMode();
+    setHelpMode(on);
+    helpModeRef.current = on;
+  }, []);
+
+  useEffect(() => {
+    helpModeRef.current = helpMode;
+  }, [helpMode]);
 
   function loadExample(id: string, quiet = false) {
     const ex = exampleById(id);
@@ -211,6 +232,22 @@ export function BlockEditor() {
       persist();
     }
     clearTutorialScratch();
+  }
+
+  function finishCoach() {
+    setCoachId(null);
+    setCoachStep(0);
+    clearTutorialScratch();
+    persist();
+    toast.success("Kept this stack. Copy it when you're ready.");
+  }
+
+  function toggleTips() {
+    const next = !helpMode;
+    setHelpMode(next);
+    helpModeRef.current = next;
+    saveHelpMode(next);
+    if (!next) setHelpBlockId(null);
   }
 
   const openCategory = useCallback((name: string) => {
@@ -325,6 +362,16 @@ export function BlockEditor() {
             <GraduationCap />
             <span className="hidden sm:inline">Tutorials</span>
           </Button>
+          <Button
+            variant={helpMode ? "secondary" : "ghost"}
+            size="sm"
+            onClick={toggleTips}
+            aria-pressed={helpMode}
+            title={helpMode ? "Tips on — drop a brick" : "Tips off"}
+          >
+            <Lightbulb />
+            <span className="hidden sm:inline">Tips</span>
+          </Button>
           <Button variant="ghost" size="sm" onClick={() => setNotecardOpen(true)}>
             <FileText />
             <span className="hidden sm:inline">Notecard</span>
@@ -367,8 +414,18 @@ export function BlockEditor() {
               onOpenCategory={openCategory}
               onHighlight={highlightType}
               onQuit={quitCoach}
+              onFinish={finishCoach}
             />
           )}
+          {helpMode && helpBlockId ? (
+            <HelpBubble
+              workspace={wsRef.current}
+              host={hostRef.current}
+              blockId={helpBlockId}
+              tick={code}
+              onDismiss={() => setHelpBlockId(null)}
+            />
+          ) : null}
         </div>
         <CodePanel
           code={code}
@@ -386,14 +443,14 @@ export function BlockEditor() {
       </Sheet>
 
       <Dialog open={examplesOpen} onOpenChange={setExamplesOpen}>
-        <DialogContent>
+        <DialogContent className="flex max-h-[86vh] flex-col overflow-hidden">
           <DialogHeader>
             <DialogTitle>Example scripts</DialogTitle>
             <DialogDescription>
               Legal LSL, ready to paste. Intermediate and up include cable noodles. Notecard greeter needs a matching note in the prim.
             </DialogDescription>
           </DialogHeader>
-          <ul className="grid gap-2">
+          <ul className="grid min-h-0 flex-1 gap-2 overflow-y-auto pr-1">
             {EXAMPLES.map((ex) => (
               <li key={ex.id}>
                 <button
@@ -422,8 +479,9 @@ export function BlockEditor() {
             <DialogDescription>
               Yellow hats are events. Snap commands under them. The panel on the right is real LSL.
               Mouse wheel zooms the grid; drag empty space to pan. New here? Open{" "}
-              <strong>Tutorials</strong> — it will not let you skip a brick. Cables (toolbox) draw a
-              noodle between matching send/receive names.
+              <strong>Tutorials</strong> — it will not let you skip a brick.{" "}
+              <strong>Tips</strong> in the header puts a bubble on each brick you drop.
+              Cables (toolbox) draw a noodle between matching send/receive names.
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[60vh] space-y-3 overflow-auto text-sm text-pretty">

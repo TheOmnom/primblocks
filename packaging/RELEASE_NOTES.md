@@ -1,4 +1,4 @@
-PrimBlocks 0.2.7
+PrimBlocks 0.2.8
 
 Pick **one** file. You do not need Git or Node.
 
@@ -18,6 +18,6 @@ Pick **one** file. You do not need Git or Node.
 
 Then: **Tutorials** (Basic → Hello, Avatar!) or **Examples → Touch greeter → Copy.** In Second Life: right-click a prim → Build → Content → New Script → paste → Save.
 
-0.2.7: every wiki event hat is in (Combat 2.0 + gamepad). Calls that return a value but you fire as a statement snap under a hat. Group bricks indent like the rest of the script. Mouse wheel still zooms from 0.2.6.
+0.2.8: tip jars, wearables, land-drops, and a **Tips** switch (bubble on each brick you drop). Done on a tutorial keeps the stack. Receiving a tip does not need debit permission — splitting one does.
 
 Walkthrough: packaging/GETTING_STARTED.txt in the repo (also inside the Windows zip).

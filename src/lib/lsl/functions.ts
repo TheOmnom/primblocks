@@ -1,5 +1,5 @@
-import { CAT, type CategoryId } from "./colors";
-import { delayNote } from "./limits";
+import { CAT, type CategoryId } from "./colors.ts";
+import { delayNote } from "./limits.ts";
 
 export type LslCheck = "Integer" | "Number" | "String" | "Key" | "Vector" | "Rotation" | "List" | "Boolean";
 
@@ -152,7 +152,7 @@ export const LSL_FUNCTIONS: FnDef[] = [
   fn("llSetObjectDesc", "looks", "set description %1", [str("DESC", "")], "llSetObjectDesc(string desc) — 127 bytes."),
   fn("llGetObjectDesc", "looks", "object description", [], "llGetObjectDesc() returns string.", { returns: "String" }),
   fn("llSetClickAction", "looks", "set click action %1", [{ name: "ACTION", check: "Integer", shadow: { kind: "const", block: "lsl_const_click", value: "CLICK_ACTION_TOUCH" } }], "llSetClickAction(integer action) — touch, sit, buy, pay, open, play, zoom, ignore."),
-  fn("llSetPayPrice", "looks", "set pay price %1 quick buttons %2", [num("PRICE", 0, "int"), { name: "QUICK", check: "List" }], "llSetPayPrice(integer price, list quick_pay_buttons) — PAY_HIDE / PAY_DEFAULT / integer amounts."),
+  fn("llSetPayPrice", "looks", "set pay price %1 quick buttons %2", [{ name: "PRICE", check: "Integer", shadow: { kind: "const", block: "lsl_const_pay", value: "PAY_DEFAULT" } }, { name: "QUICK", check: "List" }], "llSetPayPrice(integer price, list quick_pay_buttons) — PAY_DEFAULT shows the pie, PAY_HIDE hides it. Four quick amounts (1, 5, 10, 20 is the usual set). Does not put the object For Sale — Pay is a different pie."),
   fn("llParticleSystem", "looks", "particle system %1", [{ name: "RULES", check: "List" }], "llParticleSystem(list rules) — empty list [] stops particles. See the Looks presets for working rule lists."),
 
   // --- Motion ---

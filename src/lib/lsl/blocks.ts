@@ -673,6 +673,10 @@ export function registerBlocks() {
       ["CLICK_ACTION_ZOOM", "CLICK_ACTION_ZOOM"],
       ["CLICK_ACTION_NONE", "CLICK_ACTION_NONE"],
     ]),
+    constBlock("lsl_const_pay", "Integer", [
+      ["PAY_DEFAULT", "PAY_DEFAULT"],
+      ["PAY_HIDE", "PAY_HIDE"],
+    ]),
     constBlock("lsl_const_agentdata", "Integer", [
       ["DATA_NAME", "DATA_NAME"],
       ["DATA_ONLINE", "DATA_ONLINE"],
@@ -1192,6 +1196,7 @@ export function registerBlocks() {
     "lsl_const_inv",
     "lsl_const_control",
     "lsl_const_click",
+    "lsl_const_pay",
     "lsl_const_agentdata",
     "lsl_const_trim",
     "lsl_const_stats",

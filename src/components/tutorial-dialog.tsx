@@ -56,7 +56,8 @@ export function TutorialDialog({ open, onOpenChange, onStart }: Props) {
             </DialogTitle>
             <DialogDescription>
               One brick at a time. Next stays off until that brick is on the
-              workspace. Starting a walkthrough parks your current stack.
+              workspace. Starting parks your current stack. Done keeps what you
+              built — it stays the open project. X puts the old stack back.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-wrap gap-1.5">

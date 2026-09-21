@@ -1,5 +1,16 @@
 # Changes
 
+## 0.2.8
+
+Tip jars, wearables, and a Tips switch.
+
+- Six more walkthroughs: **Drop it on land** (basic), **A tip jar** and **Wear this HUD** (intermediate), **Worn and placed** (advanced), **Tip jar that travels** and **Split the tips** (expert). Next still waits on the brick. **Done — keep this** leaves the stack as the open project. The X still puts the parked stack back.
+- **Tips** in the header. Drop a brick, a bubble explains it. Event hats and ll* calls are parsed from the catalog. Control, cables, notecard, pay, attach, and debit are handwritten so the story is not a lie: receiving a tip does **not** need `PERMISSION_DEBIT`. `llGiveMoney` does.
+- Constants → `PAY_DEFAULT` / `PAY_HIDE`. `llSetPayPrice` shadows `PAY_DEFAULT`. `CLICK_ACTION_PAY` was already in the click constants.
+- Matching examples: land drop greeter, tip jar, wearable HUD, worn-or-placed, traveling tip jar, split tips.
+
+Still not every ll* on the wiki. Forced delays still warn. Mouse wheel still zooms.
+
 ## 0.2.7
 
 LSL that actually saves in a prim, plus the wiki events that were missing.

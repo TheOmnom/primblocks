@@ -18,6 +18,8 @@ Re-capture these if the chrome changes.
 | --- |
 | ![Notecard](screenshots/editor-notecard.png) |
 
+Land drop / tip jar / wearable / dual-use examples are in the app. I have not recaptured those yet — load them from Examples and read the LSL panel. What to check is in [EXAMPLES.md](EXAMPLES.md).
+
 What to check in those:
 
 - **Greeter** — `touch_start` hat, `llSay` + `llOwnerSay` stacked, no missing next-block.

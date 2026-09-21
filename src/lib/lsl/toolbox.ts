@@ -167,6 +167,7 @@ export function buildToolbox() {
         block("lsl_const_inv"),
         block("lsl_const_control"),
         block("lsl_const_click"),
+        block("lsl_const_pay"),
         block("lsl_const_agentdata"),
         block("lsl_const_trim"),
         block("lsl_const_stats"),

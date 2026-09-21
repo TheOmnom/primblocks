@@ -1,5 +1,5 @@
-import { CAT } from "./colors";
-import type { LslEventName } from "./reserved";
+import { CAT } from "./colors.ts";
+import type { LslEventName } from "./reserved.ts";
 
 export type EventParam = { type: string; name: string };
 

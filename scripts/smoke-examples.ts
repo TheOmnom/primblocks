@@ -85,6 +85,45 @@ for (const ex of EXAMPLES) {
     assert.match(code, /string greeting = "";/);
     assert.match(code, /llSetText\(greeting,/);
   }
+  if (ex.id === "placeable") {
+    assert.match(code, /on_rez\(integer start_param\)/);
+    assert.match(code, /llResetScript\(\);/);
+    assert.match(code, /llSetText\("Touch me"/);
+    assert.match(code, /llSay\(0, "Hello, Avatar!"\);/);
+  }
+  if (ex.id === "tipjar") {
+    assert.match(code, /integer total = 0;/);
+    assert.match(code, /llSetClickAction\(CLICK_ACTION_PAY\)/);
+    assert.match(code, /llSetPayPrice\(PAY_DEFAULT,/);
+    assert.match(code, /money\(key id, integer amount\)/);
+    assert.match(code, /total \+= amount;/);
+    assert.doesNotMatch(code, /llDetected/);
+    assert.doesNotMatch(code, /PERMISSION_DEBIT/);
+  }
+  if (ex.id === "wearable") {
+    assert.match(code, /attach\(key id\)/);
+    assert.match(code, /id != NULL_KEY/);
+    assert.match(code, /llOwnerSay\("HUD on"\)/);
+    assert.match(code, /llOwnerSay\("Detached"\)/);
+    assert.doesNotMatch(code, /llSay\(/);
+  }
+  if (ex.id === "dual") {
+    assert.match(code, /llGetAttached\(\) != 0/);
+    assert.match(code, /llOwnerSay\("Ready \(worn\)"\)/);
+    assert.match(code, /llSay\(0, "Hello, Avatar!"\)/);
+  }
+  if (ex.id === "tipjar-hud") {
+    assert.match(code, /PAY_HIDE/);
+    assert.match(code, /change & CHANGED_OWNER/);
+    assert.match(code, /money\(key id, integer amount\)/);
+  }
+  if (ex.id === "split-tips") {
+    assert.match(code, /key partner = NULL_KEY;/);
+    assert.match(code, /llRequestPermissions\(llGetOwner\(\), PERMISSION_DEBIT\)/);
+    assert.match(code, /run_time_permissions\(integer perm\)/);
+    assert.match(code, /llGiveMoney\(partner, amount \/ 2\)/);
+    assert.match(code, /money\(key id, integer amount\)/);
+  }
   console.log("ok", ex.id, "bricks", blocks.length);
   ws.dispose();
 }

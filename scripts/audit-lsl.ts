@@ -191,6 +191,39 @@ for (const [i, s] of wiredTut.steps.entries()) {
 }
 wiredWs.dispose();
 
+const moneyIds = ["tipjar", "tipjar-hud", "split-tips"];
+for (const id of moneyIds) {
+  const ex = EXAMPLES.find((e) => e.id === id);
+  if (!ex) { fail(id, "missing example"); continue; }
+  const ws = load(ex.state);
+  const code = generateLsl(ws);
+  if (!/money\(key id, integer amount\)/.test(code)) fail(id, "money signature wrong");
+  if (/llDetected/.test(code)) fail(id, "money path used llDetected*");
+  if (!/total \+= amount;/.test(code)) fail(id, "did not add event amount");
+  ok(id, "money path uses amount, not llDetected");
+  ws.dispose();
+}
+
+const wear = EXAMPLES.find((e) => e.id === "wearable");
+if (wear) {
+  const ws = load(wear.state);
+  const code = generateLsl(ws);
+  if (/llSay\(/.test(code)) fail("wearable", "HUD used Nearby say");
+  if (!/attach\(key id\)/.test(code)) fail("wearable", "missing attach hat");
+  ok("wearable", "owner-say only");
+  ws.dispose();
+}
+
+const split = EXAMPLES.find((e) => e.id === "split-tips");
+if (split) {
+  const ws = load(split.state);
+  const code = generateLsl(ws);
+  if (!/PERMISSION_DEBIT/.test(code)) fail("split-tips", "missing debit");
+  if (!/llGiveMoney\(partner, amount \/ 2\)/.test(code)) fail("split-tips", "give half missing or wrong");
+  ok("split-tips", "debit + give half");
+  ws.dispose();
+}
+
 console.log("\n===== SUMMARY =====");
 const fails = issues.filter(i => i.startsWith("[FAIL]"));
 const warns = issues.filter(i => i.startsWith("[WARN]"));

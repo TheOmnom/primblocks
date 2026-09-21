@@ -8,7 +8,13 @@ export type ExampleId =
   | "sensor"
   | "wired"
   | "wired-sensor"
-  | "wired-id";
+  | "wired-id"
+  | "placeable"
+  | "tipjar"
+  | "wearable"
+  | "dual"
+  | "tipjar-hud"
+  | "split-tips";
 
 export type ExampleLevel = "basic" | "intermediate" | "advanced" | "expert";
 
@@ -160,6 +166,113 @@ function ncIfKey(key: string, inner: object, next?: object) {
   };
   if (next) block.next = { block: next };
   return block;
+}
+
+function nexted(block: Record<string, unknown>, next?: object) {
+  if (next) block.next = { block: next };
+  return block;
+}
+
+function resetScript(next?: object) {
+  return nexted({ type: "lsl_fn_llResetScript" }, next);
+}
+
+function param(name: string) {
+  return { type: "lsl_param", fields: { NAME: name } };
+}
+
+function clickPay(next?: object) {
+  return nexted(
+    {
+      type: "lsl_fn_llSetClickAction",
+      inputs: {
+        ACTION: { shadow: { type: "lsl_const_click", fields: { VAL: "CLICK_ACTION_PAY" } } },
+      },
+    },
+    next,
+  );
+}
+
+function payPrice(hide: boolean, next?: object) {
+  return nexted(
+    {
+      type: "lsl_fn_llSetPayPrice",
+      inputs: {
+        PRICE: {
+          shadow: { type: "lsl_const_pay", fields: { VAL: hide ? "PAY_HIDE" : "PAY_DEFAULT" } },
+        },
+        QUICK: {
+          block: {
+            type: "lsl_list",
+            inputs: {
+              A: { shadow: { type: "lsl_integer", fields: { NUM: 1 } } },
+              B: { shadow: { type: "lsl_integer", fields: { NUM: 5 } } },
+              C: { shadow: { type: "lsl_integer", fields: { NUM: 10 } } },
+              D: { shadow: { type: "lsl_integer", fields: { NUM: 20 } } },
+            },
+          },
+        },
+      },
+    },
+    next,
+  );
+}
+
+function compare(op: string, a: object, b: object) {
+  return {
+    type: "lsl_compare",
+    fields: { OP: op },
+    inputs: { A: { block: a }, B: b },
+  };
+}
+
+function ifelse(cond: object, thenBlock: object, elseBlock: object, next?: object) {
+  return nexted(
+    {
+      type: "lsl_ifelse",
+      inputs: {
+        COND: { block: cond },
+        DO: { block: thenBlock },
+        ELSE: { block: elseBlock },
+      },
+    },
+    next,
+  );
+}
+
+function changeTotalByAmount(next?: object) {
+  return nexted(
+    {
+      type: "lsl_change_var",
+      fields: { VAR: { id: "var_total", name: "total", type: "integer" } },
+      inputs: { DELTA: { block: param("amount") } },
+    },
+    next,
+  );
+}
+
+function hoverTotal(next?: object) {
+  return nexted(
+    {
+      type: "lsl_fn_llSetText",
+      inputs: {
+        TEXT: {
+          block: {
+            type: "lsl_cast",
+            fields: { TYPE: "string" },
+            inputs: { VAL: { block: getVar("var_total", "total", "integer") } },
+          },
+        },
+        COLOR: { shadow: { type: "lsl_color_named", fields: { COL: "<1.000, 0.900, 0.000>" } } },
+        ALPHA: { shadow: { type: "lsl_float", fields: { NUM: 1 } } },
+      },
+    },
+    next,
+  );
+}
+
+function attachedNow() {
+  return compare("!=", { type: "lsl_fn_llGetAttached" }, { shadow: { type: "lsl_integer", fields: { NUM: 0 } } });
 }
 
 export const EXAMPLES: Example[] = [
@@ -691,6 +804,221 @@ export const EXAMPLES: Example[] = [
         ),
       ),
     ]),
+  },
+  {
+    id: "placeable",
+    title: "Land drop greeter",
+    blurb: "on_rez resets, hover on state_entry, touch greets. Drop it on the ground.",
+    level: "basic",
+    state: wrap([
+      ev("lsl_event_on_rez", 40, 20, resetScript()),
+      ev("lsl_event_state_entry", 40, 180, hover("Touch me")),
+      ev("lsl_event_touch_start", 40, 360, say("Hello, Avatar!", 0, ownerSay("Touched."))),
+    ]),
+  },
+  {
+    id: "tipjar",
+    title: "Tip jar",
+    blurb: "Pay pie (1/5/10/20), money event adds to total, hover updates. L$ goes to the owner — no debit.",
+    level: "intermediate",
+    state: wrap(
+      [
+        ev(
+          "lsl_event_state_entry",
+          40,
+          20,
+          clickPay(payPrice(false, hover("Tip jar — L$0"))),
+        ),
+        ev(
+          "lsl_event_money",
+          40,
+          280,
+          changeTotalByAmount(say("Thanks!", 0, hoverTotal())),
+        ),
+      ],
+      [{ name: "total", type: "integer", id: "var_total" }],
+    ),
+  },
+  {
+    id: "wearable",
+    title: "Wearable HUD",
+    blurb: "attach owner-says HUD on / Detached. on_rez resets. Worn things stay off Nearby.",
+    level: "intermediate",
+    state: wrap([
+      ev(
+        "lsl_event_attach",
+        40,
+        20,
+        ifelse(
+          compare("!=", param("id"), { shadow: { type: "lsl_const_nullkey" } }),
+          ownerSay("HUD on"),
+          ownerSay("Detached"),
+        ),
+      ),
+      ev("lsl_event_on_rez", 40, 280, resetScript()),
+    ]),
+  },
+  {
+    id: "dual",
+    title: "Worn or placed",
+    blurb: "llGetAttached branches setup and touch. HUD stays private; on land it greets.",
+    level: "advanced",
+    state: wrap([
+      ev("lsl_event_on_rez", 40, 20, resetScript()),
+      ev(
+        "lsl_event_state_entry",
+        40,
+        180,
+        ifelse(attachedNow(), ownerSay("Ready (worn)", hover("")), hover("Touch me")),
+      ),
+      ev(
+        "lsl_event_touch_start",
+        40,
+        420,
+        ifelse(attachedNow(), ownerSay("Private HUD tap"), say("Hello, Avatar!")),
+      ),
+    ]),
+  },
+  {
+    id: "tipjar-hud",
+    title: "Traveling tip jar",
+    blurb: "Pay pie on land, PAY_HIDE when worn. CHANGED_OWNER resets the total.",
+    level: "expert",
+    state: wrap(
+      [
+        ev("lsl_event_on_rez", 420, 20, resetScript()),
+        ev(
+          "lsl_event_state_entry",
+          40,
+          20,
+          clickPay(payPrice(false, hover("Tip jar — L$0"))),
+        ),
+        ev(
+          "lsl_event_attach",
+          40,
+          280,
+          ifelse(
+            compare("!=", param("id"), { shadow: { type: "lsl_const_nullkey" } }),
+            payPrice(true, hover("")),
+            clickPay(payPrice(false, hover("Tip jar — L$0"))),
+          ),
+        ),
+        ev(
+          "lsl_event_money",
+          40,
+          520,
+          changeTotalByAmount(say("Thanks!", 0, hoverTotal())),
+        ),
+        ev(
+          "lsl_event_changed",
+          420,
+          180,
+          {
+            type: "lsl_if",
+            inputs: {
+              COND: {
+                block: {
+                  type: "lsl_bitwise",
+                  fields: { OP: "&" },
+                  inputs: {
+                    A: { block: param("change") },
+                    B: { shadow: { type: "lsl_const_changed", fields: { VAL: "CHANGED_OWNER" } } },
+                  },
+                },
+              },
+              DO: { block: resetScript() },
+            },
+          },
+        ),
+      ],
+      [{ name: "total", type: "integer", id: "var_total" }],
+    ),
+  },
+  {
+    id: "split-tips",
+    title: "Split tips",
+    blurb: "PERMISSION_DEBIT, then llGiveMoney half the amount to a partner key. Odd L$ stay with the owner.",
+    level: "expert",
+    state: wrap(
+      [
+        ev(
+          "lsl_event_state_entry",
+          40,
+          20,
+          {
+            type: "lsl_fn_llRequestPermissions",
+            inputs: {
+              AGENT: { block: { type: "lsl_fn_llGetOwner" } },
+              PERM: { shadow: { type: "lsl_const_perm", fields: { VAL: "PERMISSION_DEBIT" } } },
+            },
+            next: { block: clickPay(payPrice(false, hover("Tip jar — L$0"))) },
+          },
+        ),
+        ev(
+          "lsl_event_run_time_permissions",
+          40,
+          280,
+          ifelse(
+            {
+              type: "lsl_bitwise",
+              fields: { OP: "&" },
+              inputs: {
+                A: { block: param("perm") },
+                B: { shadow: { type: "lsl_const_perm", fields: { VAL: "PERMISSION_DEBIT" } } },
+              },
+            },
+            ownerSay("Debit granted — splits will fire."),
+            ownerSay("No debit — splits will not fire."),
+          ),
+        ),
+        ev(
+          "lsl_event_money",
+          40,
+          520,
+          changeTotalByAmount(
+            say(
+              "Thanks!",
+              0,
+              {
+                type: "lsl_if",
+                inputs: {
+                  COND: {
+                    block: compare(
+                      "!=",
+                      getVar("var_partner", "partner", "key"),
+                      { shadow: { type: "lsl_const_nullkey" } },
+                    ),
+                  },
+                  DO: {
+                    block: {
+                      type: "lsl_fn_llGiveMoney",
+                      inputs: {
+                        DEST: { block: getVar("var_partner", "partner", "key") },
+                        AMOUNT: {
+                          block: {
+                            type: "lsl_arithmetic",
+                            fields: { OP: "/" },
+                            inputs: {
+                              A: { block: param("amount") },
+                              B: { shadow: { type: "lsl_integer", fields: { NUM: 2 } } },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+                next: { block: hoverTotal() },
+              },
+            ),
+          ),
+        ),
+      ],
+      [
+        { name: "total", type: "integer", id: "var_total" },
+        { name: "partner", type: "key", id: "var_partner" },
+      ],
+    ),
   },
 ];
 

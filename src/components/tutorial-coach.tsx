@@ -14,6 +14,7 @@ type Props = {
   onOpenCategory: (name: string) => void;
   onHighlight: (type: string | undefined) => void;
   onQuit: () => void;
+  onFinish: () => void;
 };
 
 export function TutorialCoach({
@@ -25,6 +26,7 @@ export function TutorialCoach({
   onOpenCategory,
   onHighlight,
   onQuit,
+  onFinish,
 }: Props) {
   const step = tutorial.steps[stepIndex];
   const last = stepIndex >= tutorial.steps.length - 1;
@@ -93,8 +95,8 @@ export function TutorialCoach({
           Back
         </Button>
         {last ? (
-          <Button size="sm" onClick={onQuit} disabled={!canNext}>
-            Done
+          <Button size="sm" onClick={onFinish} disabled={!canNext}>
+            Done — keep this
           </Button>
         ) : (
           <Button

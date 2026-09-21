@@ -17,6 +17,7 @@ export type EngineHandlers = {
   onDiagnostics?: (items: Diagnostic[]) => void;
   onSnapReject?: (message: string) => void;
   onLimitWarn?: (message: string) => void;
+  onBlockPlaced?: (block: Blockly.Block) => void;
 };
 
 export type { Diagnostic };
@@ -150,6 +151,20 @@ export function mountWorkspace(host: HTMLElement, handlers: EngineHandlers): Blo
       if (block?.getParent()) return;
       handlers.onSnapReject?.(msg);
       return;
+    }
+    if (e.type === Blockly.Events.BLOCK_CREATE && handlers.onBlockPlaced) {
+      const created = e as Blockly.Events.BlockCreate;
+      const ids = created.ids?.length
+        ? created.ids
+        : created.blockId
+          ? [created.blockId]
+          : [];
+      for (const id of ids) {
+        const b = workspace.getBlockById(id);
+        if (!b || b.isShadow?.() || b.isInsertionMarker?.()) continue;
+        handlers.onBlockPlaced(b);
+        break;
+      }
     }
     if (e.isUiEvent) return;
     fire();

@@ -76,5 +76,7 @@ Node built-in test runner, TypeScript via `--experimental-strip-types`.
 
 - `assemble.test.ts` — default-first, globals/functions/states order, no `void`, identifier sanitize, string escapes
 - `notecard.test.ts` — format round-trip, 255-byte cap, NAK/EOF start function, merge does not duplicate `state_entry`
+- `tutorials.test.ts` — every walkthrough starts empty, waits on a brick, four difficulty bands, tip-jar / wearable ids
+- `help.test.ts` — every event hat and ll* brick has a bubble; extras are handwritten
 
-There is no Blockly-in-jsdom test. Example LSL is reviewed by loading the example in the editor (or reading `examples.ts`).
+There is no Blockly-in-jsdom test. Example LSL is reviewed by `npm run smoke:examples` (loads each example into a headless workspace) and by reading `examples.ts`.

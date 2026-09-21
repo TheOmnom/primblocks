@@ -121,6 +121,68 @@ llRegionSayTo(cbl_id, 0, "private hello");
 
 Reusing `who` for the key is the usual mistake — types fight, noodle lies.
 
+## 11. Land drop greeter
+
+`on_rez` resets, `state_entry` hover, `touch_start` greets. Drop it on the ground.
+
+```lsl
+default
+{
+    on_rez(integer start_param)
+    {
+        llResetScript();
+    }
+
+    state_entry()
+    {
+        llSetText("Touch me", <1.000, 1.000, 1.000>, 1.0);
+    }
+
+    touch_start(integer num_detected)
+    {
+        llSay(0, "Hello, Avatar!");
+        llOwnerSay("Touched.");
+    }
+}
+```
+
+`start_param` is unused on purpose.
+
+## 12. Tip jar
+
+Pay pie 1 / 5 / 10 / 20. `money` adds `amount` to `total` and rewrites the hover. L$ already landed on the owner — no debit.
+
+Check:
+
+- `llSetClickAction(CLICK_ACTION_PAY)`
+- `llSetPayPrice(PAY_DEFAULT, [1, 5, 10, 20])`
+- `money(key id, integer amount)` then `total += amount;` — **not** `llDetected*`
+- hover is `(string)total`, not a typed `"L$0"`
+- no `PERMISSION_DEBIT`
+
+## 13. Wearable HUD
+
+`attach`: `id != NULL_KEY` → owner-say HUD on, else Detached. `on_rez` resets.
+
+Check:
+
+- no `llSay` — worn things stay off Nearby
+- `attach(key id)`, not a touch hat pretending to be a wear
+
+## 14. Worn or placed
+
+One script. `llGetAttached() != 0` in `state_entry` and `touch_start`. Worn: owner-say, empty hover. On land: public hover + say.
+
+## 15. Traveling tip jar
+
+Same money path as the jar. `attach` with `id != NULL_KEY` sets `PAY_HIDE` and clears hover. Detach restores the pie. `changed` tests `change & CHANGED_OWNER` and resets.
+
+## 16. Split tips
+
+`key partner` (leave `NULL_KEY` to skip). `state_entry` asks `PERMISSION_DEBIT`. `run_time_permissions` checks the bit. `money` still thanks the payer, then `llGiveMoney(partner, amount / 2)` if partner is set. Integer division: L$7 → 3, remainder stays with the owner.
+
+Visitor pay already landed on the owner. The give is a second transfer. No debit → it fails.
+
 ## Adding an example
 
 `examples.ts` is Blockly serialization by hand. Pattern:

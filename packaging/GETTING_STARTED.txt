@@ -66,13 +66,20 @@ LINUX
 ONCE IT'S OPEN
 ==============
 
-  Tutorials in the header is the walkthrough. Basic → Intermediate →
-  Advanced → Expert. Each one can load the bricks for you.
+  Tutorials in the header. Basic → Intermediate → Advanced → Expert.
+  Next stays grey until the brick it asked for is actually there.
+  Done keeps what you built. The X puts the previous stack back.
 
-  1. Tutorials → Basic → Hello, Avatar! → Load these bricks.
-  2. Copy.
+  1. Tutorials → Basic → Hello, Avatar! → Start.
+  2. Put the bricks down. Copy when the panel on the right looks right.
   3. In Second Life: right-click a prim → Build → Content → New Script.
      Select all, paste, Save.
+
+  Tips (lightbulb) in the header puts a bubble on each brick you drop.
+  Off unless you turn it on.
+
+  Tip jar, wearable, land-drop, and "does both" walkthroughs are under
+  Intermediate and up. A HUD should owner-say, not spam Nearby.
 
   The script in the prim is now yours. Closing PrimBlocks does not remove it.
 

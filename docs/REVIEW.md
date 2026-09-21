@@ -1,6 +1,6 @@
 # Review notes
 
-Working `0.2.7`. Wiki was the spec; I have not pasted every example into a live sim yet. Do that before you trust a brick.
+Working `0.2.8`. Wiki was the spec; I have not pasted every example into a live sim yet. Do that before you trust a brick.
 
 Screenshots of the current chrome: [SCREENSHOTS.md](SCREENSHOTS.md).
 
@@ -21,7 +21,7 @@ Screenshots of the current chrome: [SCREENSHOTS.md](SCREENSHOTS.md).
 
    If `llOwnerSay` is missing, the next-block chain (`scrub_`) is broken again.
 
-2. **Paste the seven examples into a prim.** Expected output is in [EXAMPLES.md](EXAMPLES.md). Notecard greeter needs a matching note named `config` in the same prim. Door is the one that usually bites: two states, `llEuler2Rot(... * DEG_TO_RAD)`, hover text on `state_entry`, listens/timers must be re-armed after a state change (door doesn't use those).
+2. **Paste the examples into a prim.** Expected output is in [EXAMPLES.md](EXAMPLES.md). Notecard greeter needs a matching note named `config` in the same prim. Door is the one that usually bites: two states, `llEuler2Rot(... * DEG_TO_RAD)`, hover text on `state_entry`, listens/timers must be re-armed after a state change (door doesn't use those). Tip jar should `money(key id, integer amount)` — not `llDetected*`. Wearable should `llOwnerSay`, not Nearby. Split tips need `PERMISSION_DEBIT` **and** a real partner key; leave partner as `NULL_KEY` and the give is skipped.
 
 3. **Generator rules that are easy to get wrong** — list below. Most of the "is this legal LSL?" questions land in `assemble.ts` + `blocks.ts`.
 
@@ -78,9 +78,12 @@ src/lib/lsl/checker.ts     connection checker (refuses illegal snaps)
 src/lib/lsl/toolbox.ts     flyout categories
 src/lib/lsl/notecard.ts    notecard format, 255-byte inspect, presets
 src/lib/lsl/notecard-gen.ts  start fn + dataserver merge
-src/lib/lsl/examples.ts    the seven bundled scripts
-src/lib/lsl/engine.ts      inject Blockly, persist hooks
-src/components/block-editor.tsx   chrome (examples / notecard / guide / copy)
+src/lib/lsl/examples.ts    bundled scripts (greeter through split tips)
+src/lib/lsl/tutorials.ts   brick-by-brick walkthroughs
+src/lib/lsl/help.ts        Tips bubbles — catalog parse + handwritten extras
+src/lib/lsl/engine.ts      inject Blockly, persist hooks, BLOCK_CREATE for Tips
+src/components/block-editor.tsx   chrome (examples / tutorials / tips / notecard / guide / copy)
+src/components/help-bubble.tsx    the bubble Tips draws next to a dropped brick
 src/components/notecard-editor.tsx  inventory notecard builder
 src/components/code-panel.tsx     highlighted LSL + copy/download
 ```
@@ -94,7 +97,7 @@ Not pretending these are done:
 - **No jump / label bricks.** LSL has `jump` / `@label`. Use raw LSL.
 - **State change inside a user function** is not blocked at snap time.
 - **Particle brick is one explode preset**, plus an off brick. Full PSYS editor is not here — dump a list into `llParticleSystem`.
-- **No cloud save.** localStorage only (`primblocks.workspace.v1`, `primblocks.notecard.v1`).
+- **No cloud save.** localStorage only (`primblocks.workspace.v1`, `primblocks.notecard.v1`, `primblocks.helpMode.v1`).
 - **No in-world compile.** Copy/paste is the loop. Notecard greeter is the one I actually structured like a real object (script + note in the same prim).
 - **`llSetLinkPrimitiveParamsFast` is a list dump**, not a PRIM_* builder UI.
 

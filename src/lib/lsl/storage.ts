@@ -5,6 +5,7 @@ const NAME_KEY = "primblocks.scriptName.v1";
 const NC_KEY = "primblocks.notecard.v1";
 const PRESET_KEY = "primblocks.presets.v1";
 const SCRATCH_KEY = "primblocks.tutorialScratch.v1";
+const HELP_KEY = "primblocks.helpMode.v1";
 
 export type UserPreset = {
   id: string;
@@ -153,5 +154,21 @@ export function clearTutorialScratch() {
     localStorage.removeItem(SCRATCH_KEY);
   } catch {
     /* */
+  }
+}
+
+export function loadHelpMode(): boolean {
+  try {
+    return localStorage.getItem(HELP_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function saveHelpMode(on: boolean) {
+  try {
+    localStorage.setItem(HELP_KEY, on ? "1" : "0");
+  } catch {
+    /* quota */
   }
 }
