@@ -2,6 +2,10 @@
 
 Written the way I talk about the app, not the way a ticket tracker talks about it. Newest first.
 
+## 0.2.14
+
+**Update now** was a link the desktop window swallowed, so the click felt dead. It now opens the installer in your real browser. This build cannot fix the button on the old one — grab Setup from Releases this once, and the next time it will actually open.
+
 ## 0.2.13
 
 File was missing Quit. Yellow brick → **Quit**, or Ctrl+Q. On the desktop build that closes the window. The bricks already save themselves in this profile, so you are not throwing work away.

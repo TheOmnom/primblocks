@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { APP_VERSION, checkForUpdate, type UpdateStatus } from "@/lib/update";
+import { openExternal } from "@/lib/quit";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -36,14 +37,31 @@ export function VersionSlot({ check = checkForUpdate, className }: Props) {
     void run(false);
   }, [run]);
 
+  async function grabUpdate() {
+    if (status.kind !== "available") return;
+    setBusy(true);
+    const url = status.downloadUrl;
+    const ok = await openExternal(url);
+    setBusy(false);
+    if (ok) {
+      toast.message(`Opening v${status.latest} in your browser.`);
+      return;
+    }
+    toast.error("Could not open the browser. Get it from GitHub Releases.");
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.message("Download link copied.");
+    } catch {
+      /* */
+    }
+  }
+
   if (status.kind === "available") {
     return (
       <div className={cn("flex items-center gap-1.5", className)}>
         <span className="text-xs font-medium text-brick">New Version Available</span>
-        <Button size="sm" asChild>
-          <a href={status.downloadUrl} target="_blank" rel="noreferrer">
-            Update now
-          </a>
+        <Button size="sm" type="button" disabled={busy} onClick={() => void grabUpdate()}>
+          {busy ? "Opening…" : "Update now"}
         </Button>
       </div>
     );

@@ -1,4 +1,4 @@
-PrimBlocks 0.2.13
+PrimBlocks 0.2.14
 
 Pick **one** file. You do not need Git or Node.
 
@@ -20,7 +20,7 @@ Then: **Tutorials** (Basic → Hello, Avatar!) or **Examples → Touch greeter �
 
 Since 0.2.6:
 
-- Examples are not a "wires" club. **Detect then greet**, **Sensor then greet**, **Name and key**. Hats get spaced so they do not sit on top of each other.
+- **Update now** opens the installer in your browser. The old button was a link the desktop window would not follow.
 - The tutorial card was glued to the bricks it was talking about. Drag the title bar.
 - Yellow brick next to the title is File (New / Open / Save / Save As / Import LSL / Quit). Import rebuilds bricks from a `.lsl` or `.txt`. Save writes a `.primblocks` project — Copy / Download on the right is still the compiled script.
 - Tip jar, wearable, land-drop, and worn+placed walkthroughs. Tutorials name the left-list category and the brick as it is printed (Events → **when touched**, not `touch_start`).
