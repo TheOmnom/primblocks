@@ -727,8 +727,8 @@ export const EXAMPLES: Example[] = [
   },
   {
     id: "wired",
-    title: "Wired greeter",
-    blurb: "detect writes the toucher’s name into who; greet says it. The noodle draws itself between set and get.",
+    title: "Detect then greet",
+    blurb: "detect writes the toucher’s name into who; greet says it. Set and get of the same name draws the noodle.",
     level: "intermediate",
     state: wrap(
       [
@@ -748,8 +748,8 @@ export const EXAMPLES: Example[] = [
   },
   {
     id: "wired-sensor",
-    title: "Wired sensor",
-    blurb: "Repeating agent sensor. One group writes the nearest name into who; the other says it. Same data-link noodle, in a sensor hat.",
+    title: "Sensor then greet",
+    blurb: "Repeating agent sensor. One group writes the nearest name into who; the other says it.",
     level: "advanced",
     state: wrap(
       [
@@ -788,8 +788,8 @@ export const EXAMPLES: Example[] = [
   },
   {
     id: "wired-id",
-    title: "Wired name + key",
-    blurb: "Two noodles. detect writes who (name) and id (key). greet says the name in public and region-says a private hello to the key.",
+    title: "Name and key",
+    blurb: "detect writes who (name) and id (key). greet says the name in public and region-says a private hello to the key.",
     level: "expert",
     state: wrap(
       [

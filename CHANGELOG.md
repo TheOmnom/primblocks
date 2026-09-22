@@ -2,11 +2,19 @@
 
 Written the way I talk about the app, not the way a ticket tracker talks about it. Newest first.
 
+## 0.2.12
+
+Examples still had a little "Wired …" club, as if noodles were a special mode. They are not.
+
+Those three are just **Detect then greet**, **Sensor then greet**, and **Name and key**. **group** is orange now, same as the rest of Control.
+
+Hats were sitting on top of each other because I had guessed the y and the bricks are taller than that. After Examples / Import they get spaced so one stack is never covering another. Open still keeps where you put things.
+
 ## 0.2.11
 
 I used to make you pick send/along out of a Cables list so a noodle would show up. That's backwards. The noodle is just "this value is written here and read there."
 
-So: set a variable in one group, get it in another, and the line draws itself. Same picture as **Examples → Wired name + key**. Tip jar `total` does it too. There is no Cables list anymore. **group** moved under Control, because it was only ever a frame.
+So: set a variable in one group, get it in another, and the line draws itself. Same picture as **Examples → Name and key**. Tip jar `total` does it too. There is no Cables list anymore. **group** moved under Control, because it was only ever a frame.
 
 Old projects that still have send/along bricks compile. Import of `cbl_who = …` becomes ordinary set/get of `who`.
 

@@ -139,10 +139,10 @@ export function BlockEditor() {
         try {
           engine.loadState(ws, saved);
         } catch {
-          engine.loadState(ws, EXAMPLES[0].state);
+          engine.loadState(ws, EXAMPLES[0].state, { space: true });
         }
       } else {
-        engine.loadState(ws, EXAMPLES[0].state);
+        engine.loadState(ws, EXAMPLES[0].state, { space: true });
         setScriptName(EXAMPLES[0].title);
         saveScriptName(EXAMPLES[0].title);
       }
@@ -206,7 +206,7 @@ export function BlockEditor() {
     const engine = engineRef.current;
     if (!ex || !ws || !engine) return;
     try {
-      engine.loadState(ws, ex.state);
+      engine.loadState(ws, ex.state, { space: true });
     } catch (err) {
       toast.error(`Could not load ${ex.title}: ${err instanceof Error ? err.message : String(err)}`);
       return;
@@ -326,11 +326,11 @@ export function BlockEditor() {
     toast.success(`Loaded “${preset.name}”`);
   }
 
-  function applyWorkspace(state: object, name: string, card?: NotecardDoc) {
+  function applyWorkspace(state: object, name: string, card?: NotecardDoc, space = false) {
     const ws = wsRef.current;
     const engine = engineRef.current;
     if (!ws || !engine) return;
-    engine.loadState(ws, state);
+    engine.loadState(ws, state, space ? { space: true } : undefined);
     setScriptName(name);
     saveScriptName(name);
     if (card) {
@@ -396,7 +396,7 @@ export function BlockEditor() {
       return;
     }
     const imported = importLsl(opened.source);
-    applyWorkspace(imported.state, opened.scriptName);
+    applyWorkspace(imported.state, opened.scriptName, undefined, true);
     toast.success(`Imported ${imported.brickCount} stack${imported.brickCount === 1 ? "" : "s"}`);
     if (imported.warnings[0]) toast.message(imported.warnings[0]);
   }
@@ -406,7 +406,7 @@ export function BlockEditor() {
     if (!picked) return;
     if (!confirmReplace()) return;
     const imported = importLsl(picked.text);
-    applyWorkspace(imported.state, nameFromFilename(picked.name));
+    applyWorkspace(imported.state, nameFromFilename(picked.name), undefined, true);
     toast.success(`Imported ${imported.brickCount} stack${imported.brickCount === 1 ? "" : "s"}`);
     if (imported.warnings[0]) toast.message(imported.warnings[0]);
   }
@@ -553,7 +553,7 @@ export function BlockEditor() {
           <DialogHeader>
             <DialogTitle>Example scripts</DialogTitle>
             <DialogDescription>
-              Legal LSL, ready to paste. Intermediate and up include cable noodles. Notecard greeter needs a matching note in the prim.
+              Legal LSL, ready to paste. Notecard greeter needs a matching note in the prim.
             </DialogDescription>
           </DialogHeader>
           <ul className="grid min-h-0 flex-1 gap-2 overflow-y-auto pr-1">

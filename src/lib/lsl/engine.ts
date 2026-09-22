@@ -8,6 +8,7 @@ import { primTheme } from "./theme";
 import { buildToolbox } from "./toolbox";
 import { applyBlockWarnings, diagKey, validateWorkspace, type Diagnostic } from "./validate";
 import { attachWireLayer, redrawWires } from "./wires-layer";
+import { spaceTopBlocks } from "./layout";
 
 Blockly.setLocale(En as unknown as { [key: string]: string });
 
@@ -184,7 +185,11 @@ export function createTypedVariable(
   workspace.refreshToolboxSelection();
 }
 
-export function loadState(workspace: Blockly.WorkspaceSvg, state: object, opts?: { keepFlyout?: boolean }) {
+export function loadState(
+  workspace: Blockly.WorkspaceSvg,
+  state: object,
+  opts?: { keepFlyout?: boolean; space?: boolean },
+) {
   Blockly.Events.disable();
   try {
     workspace.clear();
@@ -207,6 +212,13 @@ export function loadState(workspace: Blockly.WorkspaceSvg, state: object, opts?:
   }
   Blockly.svgResize(workspace);
   if (!opts?.keepFlyout) hideFlyout(workspace);
+  if (opts?.space) {
+    try {
+      spaceTopBlocks(workspace);
+    } catch {
+      /* */
+    }
+  }
   try {
     redrawWires(workspace);
   } catch {

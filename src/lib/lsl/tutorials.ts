@@ -257,7 +257,7 @@ export const TUTORIALS: Tutorial[] = [
   {
     id: "cables-wire",
     level: "intermediate",
-    title: "Wire a value between groups",
+    title: "Pass a value between groups",
     blurb: "Set a variable in one group, get it in another. The noodle draws itself.",
     minutes: 10,
     startEmpty: true,
@@ -383,7 +383,7 @@ export const TUTORIALS: Tutorial[] = [
         toolbox: "Variables",
         find: ["Variables → Create variable…", "Control → group", "Variables → set who to", "Sensing → detected name"],
         do: "Variables → Create variable…, name who, type string. Inside when sensor detects: Control → group named sense. Inside that, Variables → set who to, value = Sensing → detected name, index 0.",
-        why: "Same pattern as the wired greeter, now in a sensor. The noodle is easier to read than a detect brick nested inside say.",
+        why: "Same pattern as Detect then greet, now in a sensor. The noodle is easier to read than a detect brick nested inside say.",
         expect: { type: "lsl_set_var", root: "lsl_event_sensor" },
       },
       {
@@ -391,7 +391,7 @@ export const TUTORIALS: Tutorial[] = [
         toolbox: "Control",
         find: ["Control → group", "Chat → say … on channel …", "Variables → who"],
         do: "Second Control → group named greet, still under the sensor hat. Inside it: Chat → say … on channel …, message socket = Variables → who.",
-        why: "Compiled as string who = \"\"; who = llDetectedName(0); llSay(0, who); Examples → Wired sensor is the finished stack.",
+        why: "Compiled as string who = \"\"; who = llDetectedName(0); llSay(0, who); Examples → Sensor then greet is the finished stack.",
         expect: { type: "lsl_get_var" },
       },
     ],
@@ -502,7 +502,7 @@ export const TUTORIALS: Tutorial[] = [
         toolbox: "Events",
         find: ["Events → when touched"],
         do: "Left list → Events. Grab when touched. State default.",
-        why: "Same as the wired greeter, now with two noodles. Examples → Wired name + key is the finished stack if you get stuck.",
+        why: "Same as Detect then greet, now with two noodles. Examples → Name and key is the finished stack if you get stuck.",
         expect: { type: "lsl_event_touch_start" },
       },
       {

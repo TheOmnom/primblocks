@@ -1,4 +1,4 @@
-PrimBlocks 0.2.11
+PrimBlocks 0.2.12
 
 Pick **one** file. You do not need Git or Node.
 
@@ -20,7 +20,7 @@ Then: **Tutorials** (Basic → Hello, Avatar!) or **Examples → Touch greeter �
 
 Since 0.2.6:
 
-- Noodles draw themselves. Set a variable here, get it there, the line shows up. No Cables list — **group** is under Control.
+- Examples are not a "wires" club. **Detect then greet**, **Sensor then greet**, **Name and key**. Hats get spaced so they do not sit on top of each other.
 - The tutorial card was glued to the bricks it was talking about. Drag the title bar.
 - Yellow brick next to the title is File (New / Open / Save / Save As / Import LSL). Import rebuilds bricks from a `.lsl` or `.txt`. Save writes a `.primblocks` project — Copy / Download on the right is still the compiled script.
 - Tip jar, wearable, land-drop, and worn+placed walkthroughs. Tutorials name the left-list category and the brick as it is printed (Events → **when touched**, not `touch_start`).

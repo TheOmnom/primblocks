@@ -88,7 +88,7 @@ Check:
 - `no_sensor` is optional; this example does not use it
 - repeating sensor is cleared on state change — only one state here
 
-## 8. Wired greeter
+## 8. Detect then greet
 
 Two groups under `touch_start`. `detect` sends `llDetectedName(0)` along `who`. `greet` says `along who`. Expect:
 
@@ -101,11 +101,11 @@ llSay(0, who);
 
 A noodle is drawn between set and get of the same name.
 
-## 9. Wired sensor
+## 9. Sensor then greet
 
 Same data link, in a `sensor` hat, armed with `llSensorRepeat`.
 
-## 10. Wired name + key
+## 10. Name and key
 
 Expert. Two noodles. `detect` writes `who` = `llDetectedName(0)` and `id` = `llDetectedKey(0)`. `greet` says the name and `llRegionSayTo`s the key.
 

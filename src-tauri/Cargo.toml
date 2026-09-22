@@ -1,6 +1,6 @@
 [package]
 name = "primblocks"
-version = "0.2.11"
+version = "0.2.12"
 description = "Snap-together LSL for Second Life"
 authors = ["TheOmnom"]
 edition = "2021"

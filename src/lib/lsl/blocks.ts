@@ -861,7 +861,7 @@ export function registerBlocks() {
       args1: [{ type: "input_statement", name: "DO" }],
       previousStatement: null,
       nextStatement: null,
-      colour: CAT.chat,
+      colour: CAT.control,
       tooltip:
         "Frame a stack so you can read it. Does not change LSL. Name it for the job. Set a variable at the edge when another group needs the value — the noodle draws itself.",
     },
