@@ -1,5 +1,5 @@
 /** Product version — keep in lockstep with package.json. */
-export const APP_VERSION = "0.2.12";
+export const APP_VERSION = "0.2.13";
 
 export const GITHUB_REPO = "TheOmnom/primblocks";
 export const RELEASES_API = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;

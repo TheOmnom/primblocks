@@ -2,6 +2,10 @@
 
 Written the way I talk about the app, not the way a ticket tracker talks about it. Newest first.
 
+## 0.2.13
+
+File was missing Quit. Yellow brick → **Quit**, or Ctrl+Q. On the desktop build that closes the window. The bricks already save themselves in this profile, so you are not throwing work away.
+
 ## 0.2.12
 
 Examples still had a little "Wired …" club, as if noodles were a special mode. They are not.

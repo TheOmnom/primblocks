@@ -34,13 +34,8 @@ import { EXAMPLES, exampleById } from "@/lib/lsl/examples";
 import { downloadText, pickFile, saveTextAs } from "@/lib/lsl/file-io";
 import { importLsl } from "@/lib/lsl/import-lsl";
 import { emptyNotecard, greeterNotecard, type NotecardDoc } from "@/lib/lsl/notecard";
-import {
-  interpretFile,
-  nameFromFilename,
-  packProject,
-  projectFileName,
-  stringifyProject,
-} from "@/lib/lsl/project";
+import { interpretFile, nameFromFilename, packProject, projectFileName, stringifyProject } from "@/lib/lsl/project";
+import { quitApp } from "@/lib/quit";
 import { tutorialById, type Tutorial } from "@/lib/lsl/tutorials";
 import type { Diagnostic } from "@/lib/lsl/validate";
 import {
@@ -184,6 +179,9 @@ export function BlockEditor() {
       } else if (key === "n") {
         e.preventDefault();
         fileNew();
+      } else if (key === "q") {
+        e.preventDefault();
+        fileQuit();
       }
     }
     window.addEventListener("keydown", onKey);
@@ -411,6 +409,11 @@ export function BlockEditor() {
     if (imported.warnings[0]) toast.message(imported.warnings[0]);
   }
 
+  function fileQuit() {
+    persist();
+    void quitApp();
+  }
+
   function createVar() {
     const ws = wsRef.current;
     const engine = engineRef.current;
@@ -442,6 +445,7 @@ export function BlockEditor() {
             onSave={fileSave}
             onSaveAs={() => void fileSaveAs()}
             onImport={() => void fileImport()}
+            onQuit={fileQuit}
           />
           <div className="min-w-0">
             <p className="font-display text-sm font-semibold leading-none tracking-tight">
@@ -585,7 +589,7 @@ export function BlockEditor() {
             <DialogDescription>
               Yellow hats are events. Snap commands under them. The panel on the right is real LSL.
               Mouse wheel zooms the grid; drag empty space to pan. The yellow brick next to the
-              title is File — New, Open, Save, Save As, Import LSL. New here? Open{" "}
+              title is File — New, Open, Save, Save As, Import LSL, Quit. New here? Open{" "}
               <strong>Tutorials</strong> — it will not let you skip a brick.{" "}
               <strong>Tips</strong> in the header puts a bubble on each brick you drop.
               Set a variable in one place and get it in another — the noodle draws itself.

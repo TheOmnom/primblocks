@@ -15,12 +15,14 @@ export function FileMenu({
   onSave,
   onSaveAs,
   onImport,
+  onQuit,
 }: {
   onNew: () => void;
   onOpen: () => void;
   onSave: () => void;
   onSaveAs: () => void;
   onImport: () => void;
+  onQuit: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ top: 0, left: 0 });
@@ -68,6 +70,8 @@ export function FileMenu({
     { id: "saveas", label: "Save As…", shortcut: "Ctrl+Shift+S", onSelect: onSaveAs },
     "sep",
     { id: "import", label: "Import LSL…", shortcut: "Ctrl+Shift+O", onSelect: onImport },
+    "sep",
+    { id: "quit", label: "Quit", shortcut: "Ctrl+Q", onSelect: onQuit },
   ];
 
   function pick(item: Item) {
