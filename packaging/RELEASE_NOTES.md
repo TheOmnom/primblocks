@@ -20,12 +20,12 @@ Then: **Tutorials** (Basic → Hello, Avatar!) or **Examples → Touch greeter �
 
 Since 0.2.6:
 
-- Noodles draw themselves between set and get of the same variable. No Cables list — **group** is under Control.
-- Tutorial card: drag the title bar so it is not sitting on the bricks.
-- Yellow brick next to the title is the File menu (New / Open / Save / Save As / Import LSL). Import rebuilds bricks from a `.lsl` or `.txt`. Save writes a `.primblocks` project — Copy / Download on the right is still the compiled script.
+- Noodles draw themselves. Set a variable here, get it there, the line shows up. No Cables list — **group** is under Control.
+- The tutorial card was glued to the bricks it was talking about. Drag the title bar.
+- Yellow brick next to the title is File (New / Open / Save / Save As / Import LSL). Import rebuilds bricks from a `.lsl` or `.txt`. Save writes a `.primblocks` project — Copy / Download on the right is still the compiled script.
 - Tip jar, wearable, land-drop, and worn+placed walkthroughs. Tutorials name the left-list category and the brick as it is printed (Events → **when touched**, not `touch_start`).
 - **Tips** in the header. Drop a brick, get a bubble.
 - Wiki event set: Combat 2.0 hats and `game_control`. Calls that people fire as statements (`llGiveMoney`, `llSetRegionPos`, …) snap under a hat.
-- Mouse wheel zooms. Flyout scrollbar goes away when the menu closes. Cables go around bricks instead of through them.
+- Mouse wheel zooms. Flyout scrollbar goes away when the menu closes. Noodles go around bricks instead of through them.
 
 Walkthrough: packaging/GETTING_STARTED.txt in the repo (also inside the Windows zip).

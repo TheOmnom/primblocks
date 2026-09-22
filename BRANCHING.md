@@ -22,7 +22,7 @@ git checkout dev
 
 If it isn’t fast-forward, main got a direct commit. Don’t do that.
 
-Bump `version` in `package.json`, `src-tauri/tauri.conf.json`, and `src-tauri/Cargo.toml` together *before* promoting, or the tag will collide with the last Release.
+Bump `version` in `package.json`, `src-tauri/tauri.conf.json`, and `src-tauri/Cargo.toml` together *before* promoting, or the tag will collide with the last Release. Same turn: a `CHANGELOG.md` entry in the voice of this repo (what was in the way, then what you click now — not Added / Fixed / Changed). `packaging/RELEASE_NOTES.md` gets the same news in the "Since …" list. If you skip the write-up, go back and do it; a bump with no notes is a bug.
 
 CI:
 
