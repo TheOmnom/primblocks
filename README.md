@@ -2,7 +2,7 @@
 
 Snap LSL together from puzzle bricks, then paste a real Second Life script into a prim.
 
-**Version:** `0.2.10`
+**Version:** `0.2.11`
 
 Yellow hats are events. Colored bricks stack under them. The panel on the right is the compiled `.lsl` — not a sketch.
 
@@ -35,7 +35,7 @@ Not a full LSL IDE. The catalog is the events + the ll* calls you actually use f
 
 - **File** — yellow brick next to the title. New, Open, Save, Save As (`.primblocks` project), Import LSL (rebuilds bricks from a `.lsl` / `.txt`)
 - **Puzzle bricks** — Blockly 13, colored C-hats, toolbox categories
-- **Cables** — named send/receive between groups. The noodle sits on top of bricks and goes around a stack that is in the way. Compiles to a typed global
+- **Noodles** — set a variable in one place, get it in another, and the line draws itself. Goes around a stack that is in the way
 - **Presets** — save the current workspace in this browser / the desktop profile. Nothing is uploaded
 - **Tutorials** — basic / intermediate / advanced / expert. Empty workspace, one brick at a time, Next stays off until that brick is there. Done keeps the stack. X puts the parked one back. Tip jar, wearable, land-drop, and worn+placed are in there.
 - **Tips** — header switch. Drop a brick, get a bubble. Off by default.
@@ -104,7 +104,7 @@ Details: [docs/LSL.md](docs/LSL.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md
 
 | File | What |
 |---|---|
-| [CHANGELOG.md](CHANGELOG.md) | What changed in 0.2.10 |
+| [CHANGELOG.md](CHANGELOG.md) | What changed in 0.2.11 |
 | [packaging/GETTING_STARTED.txt](packaging/GETTING_STARTED.txt) | Which file to download, then what to click |
 | [packaging/README.md](packaging/README.md) | How the Release is built |
 | [docs/REVIEW.md](docs/REVIEW.md) | Where to start, easy-to-break generator rules, known gaps |
@@ -124,4 +124,4 @@ See [BRANCHING.md](BRANCHING.md).
 
 ## License / notes
 
-Personal / local use. `0.2.10` — catalog is not every ll* on the wiki. Hover a brick for the wiki signature. Forced delays and in-world caps warn; they still compile because the simulator is what actually sleeps / clamps.
+Personal / local use. `0.2.11` — catalog is not every ll* on the wiki. Hover a brick for the wiki signature. Forced delays and in-world caps warn; they still compile because the simulator is what actually sleeps / clamps.

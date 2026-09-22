@@ -98,18 +98,14 @@ function groupBlock(name: string, inner: object, next?: object) {
   return block;
 }
 
-function sendCable(name: string, value: object, next?: object) {
+function setVar(id: string, name: string, type: string, value: object, next?: object) {
   const block: Record<string, unknown> = {
-    type: "lsl_cable_send",
-    fields: { CABLE: name },
+    type: "lsl_set_var",
+    fields: { VAR: { id, name, type } },
     inputs: { VALUE: { block: value } },
   };
   if (next) block.next = { block: next };
   return block;
-}
-
-function recvCable(name: string) {
-  return { type: "lsl_cable_recv", fields: { CABLE: name } };
 }
 
 function detectedName() {
@@ -732,78 +728,100 @@ export const EXAMPLES: Example[] = [
   {
     id: "wired",
     title: "Wired greeter",
-    blurb: "Two groups, a named cable between them. detect writes the toucher’s name; greet says it. The noodle is the point.",
+    blurb: "detect writes the toucher’s name into who; greet says it. The noodle draws itself between set and get.",
     level: "intermediate",
-    state: wrap([
-      ev(
-        "lsl_event_touch_start",
-        40,
-        40,
-        groupBlock(
-          "detect",
-          sendCable("who", detectedName()),
-          groupBlock("greet", sayValue(recvCable("who"))),
+    state: wrap(
+      [
+        ev(
+          "lsl_event_touch_start",
+          40,
+          40,
+          groupBlock(
+            "detect",
+            setVar("var_who", "who", "string", detectedName()),
+            groupBlock("greet", sayValue(getVar("var_who", "who", "string"))),
+          ),
         ),
-      ),
-    ]),
+      ],
+      [{ name: "who", type: "string", id: "var_who" }],
+    ),
   },
   {
     id: "wired-sensor",
     title: "Wired sensor",
-    blurb: "Repeating agent sensor. One group sends the nearest name along who; the other says it. Same cable idea, in a sensor hat.",
+    blurb: "Repeating agent sensor. One group writes the nearest name into who; the other says it. Same data-link noodle, in a sensor hat.",
     level: "advanced",
-    state: wrap([
-      ev(
-        "lsl_event_state_entry",
-        40,
-        20,
-        {
-          type: "lsl_fn_llSensorRepeat",
-          inputs: {
-            NAME: { shadow: { type: "lsl_string", fields: { TEXT: "" } } },
-            ID: { shadow: { type: "lsl_const_nullkey" } },
-            TYPE: { shadow: { type: "lsl_const_sensor", fields: { VAL: "AGENT" } } },
-            RANGE: { shadow: { type: "lsl_float", fields: { NUM: 8 } } },
-            ARC: { shadow: { type: "lsl_const_math", fields: { VAL: "PI" } } },
-            RATE: { shadow: { type: "lsl_float", fields: { NUM: 5 } } },
+    state: wrap(
+      [
+        ev(
+          "lsl_event_state_entry",
+          40,
+          20,
+          {
+            type: "lsl_fn_llSensorRepeat",
+            inputs: {
+              NAME: { shadow: { type: "lsl_string", fields: { TEXT: "" } } },
+              ID: { shadow: { type: "lsl_const_nullkey" } },
+              TYPE: { shadow: { type: "lsl_const_sensor", fields: { VAL: "AGENT" } } },
+              RANGE: { shadow: { type: "lsl_float", fields: { NUM: 8 } } },
+              ARC: { shadow: { type: "lsl_const_math", fields: { VAL: "PI" } } },
+              RATE: { shadow: { type: "lsl_float", fields: { NUM: 5 } } },
+            },
           },
-        },
-      ),
-      ev(
-        "lsl_event_sensor",
-        40,
-        240,
-        groupBlock(
-          "sense",
-          sendCable("who", detectedName()),
+        ),
+        ev(
+          "lsl_event_sensor",
+          40,
+          240,
           groupBlock(
-            "greet",
-            sayValue(recvCable("who"), 0, ownerSay("Sensor tick.")),
+            "sense",
+            setVar("var_who", "who", "string", detectedName()),
+            groupBlock(
+              "greet",
+              sayValue(getVar("var_who", "who", "string"), 0, ownerSay("Sensor tick.")),
+            ),
           ),
         ),
-      ),
-    ]),
+      ],
+      [{ name: "who", type: "string", id: "var_who" }],
+    ),
   },
   {
     id: "wired-id",
     title: "Wired name + key",
-    blurb: "Two noodles. detect sends who (name) and id (key). greet says the name in public and region-says a private hello to the key. Names have to stay distinct or the types fight.",
+    blurb: "Two noodles. detect writes who (name) and id (key). greet says the name in public and region-says a private hello to the key.",
     level: "expert",
-    state: wrap([
-      ev(
-        "lsl_event_touch_start",
-        40,
-        40,
-        groupBlock(
-          "detect",
-          sendCable("who", detectedName(), sendCable("id", detectedKey())),
+    state: wrap(
+      [
+        ev(
+          "lsl_event_touch_start",
+          40,
+          40,
           groupBlock(
-            "greet",
-            sayValue(recvCable("who"), 0, regionSayTo(recvCable("id"), "private hello")),
+            "detect",
+            setVar(
+              "var_who",
+              "who",
+              "string",
+              detectedName(),
+              setVar("var_id", "id", "key", detectedKey()),
+            ),
+            groupBlock(
+              "greet",
+              sayValue(
+                getVar("var_who", "who", "string"),
+                0,
+                regionSayTo(getVar("var_id", "id", "key"), "private hello"),
+              ),
+            ),
           ),
         ),
-      ),
-    ]),
+      ],
+      [
+        { name: "who", type: "string", id: "var_who" },
+        { name: "id", type: "key", id: "var_id" },
+      ],
+    ),
   },
   {
     id: "placeable",

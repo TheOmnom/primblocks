@@ -31,13 +31,13 @@ describe("tutorials", () => {
     }
   });
 
-  it("intermediate and above include a cable walkthrough", () => {
-    const cable = TUTORIALS.filter((t) =>
-      t.steps.some((s) => s.expect?.type === "lsl_cable_send" || s.expect?.type === "lsl_cable_recv"),
+  it("intermediate and above include a data-link walkthrough", () => {
+    const wired = TUTORIALS.filter((t) =>
+      t.steps.some((s) => s.expect?.type === "lsl_set_var" || s.expect?.type === "lsl_get_var"),
     );
-    assert.ok(cable.some((t) => t.level === "intermediate"));
-    assert.ok(cable.some((t) => t.level === "advanced"));
-    assert.ok(cable.some((t) => t.level === "expert"));
+    assert.ok(wired.some((t) => t.level === "intermediate"));
+    assert.ok(wired.some((t) => t.level === "advanced"));
+    assert.ok(wired.some((t) => t.level === "expert"));
   });
 
   it("keeps all four difficulty bands populated", () => {

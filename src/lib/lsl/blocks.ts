@@ -863,7 +863,7 @@ export function registerBlocks() {
       nextStatement: null,
       colour: CAT.chat,
       tooltip:
-        "Frame a stack so you can read it. Does not change LSL. Put send-along-cable at the edge when another group needs a value.",
+        "Frame a stack so you can read it. Does not change LSL. Name it for the job. Set a variable at the edge when another group needs the value — the noodle draws itself.",
     },
     {
       type: "lsl_cable_send",

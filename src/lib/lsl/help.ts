@@ -76,17 +76,17 @@ const EXTRA: Record<string, Extra> = {
   lsl_group: {
     title: "group",
     tip: "A frame. Compiles to a comment, not extra LSL. Name it for the job the stack is doing.",
-    why: "Pairs with cables: one group produces a value, another consumes it.",
+    why: "Use it when one stack produces a value and another consumes it. The noodle is the variable, not this brick.",
   },
   lsl_cable_send: {
     title: "send along",
-    tip: "Writes a typed global (cbl_name). Matching receive draws a noodle.",
-    why: "Still has to run inside an event or it never assigns. Names are case-sensitive.",
+    tip: "Older projects only — there is no Cables list anymore. Same job as set-variable.",
+    why: "Matching along-bricks still draw a noodle. New work should use Variables → set / get; the line draws itself.",
   },
   lsl_cable_recv: {
     title: "along",
-    tip: "Reads the last send on that name. Plug it into a socket.",
-    why: "If the names don't match, there is no noodle and the global stays at the type's zero.",
+    tip: "Older projects only. Same job as get-variable.",
+    why: "If the names don't match a send, the global stays at the type's zero.",
   },
   lsl_notecard_read: {
     title: "read notecard",

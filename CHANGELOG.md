@@ -1,5 +1,13 @@
 # Changes
 
+## 0.2.11
+
+Noodles draw themselves. There is no Cables list.
+
+- Set a variable in one group and get it in another — the line is the data link, same look as **Wired name + key**.
+- **group** lives under Control. Old send/along bricks still compile if a saved project already has them.
+- Import turns `cbl_*` writes into ordinary set/get.
+
 ## 0.2.10
 
 The tutorial card sat on the bricks it was talking about. Drag the title bar (grip on the left) to move it. It stays put for the rest of that walkthrough.

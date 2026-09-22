@@ -67,7 +67,7 @@ describe("import LSL → bricks", () => {
     assert.equal(doBlock.next?.block.type, "lsl_fn_llOwnerSay");
   });
 
-  it("turns cbl_ assigns into cables and += into change-by", () => {
+  it("turns cbl_ assigns into set/get and += into change-by", () => {
     const result = importLsl(`
 string cbl_who = "";
 integer total = 0;
@@ -84,11 +84,12 @@ default
 `);
     const hat = (result.state as { blocks: { blocks: Record<string, unknown>[] } }).blocks.blocks[0];
     const first = (hat.inputs as { DO: { block: Record<string, unknown> } }).DO.block;
-    assert.equal(first.type, "lsl_cable_send");
+    assert.equal(first.type, "lsl_set_var");
     const second = (first.next as { block: Record<string, unknown> }).block;
     assert.equal(second.type, "lsl_change_var");
     const vars = (result.state as { variables: { name: string; type: string }[] }).variables;
     assert.ok(vars.some((v) => v.name === "total" && v.type === "integer"));
+    assert.ok(vars.some((v) => v.name === "who" && v.type === "string"));
     assert.ok(!vars.some((v) => v.name.startsWith("cbl_")));
   });
 

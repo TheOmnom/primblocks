@@ -372,7 +372,7 @@ export function validateWorkspace(workspace: Workspace): Diagnostic[] {
           push(out, block, {
             severity: "warning",
             kind: "rule",
-            message: `Nothing receives “${name}”. Drop an along-cable brick with that name, or this write goes nowhere useful.`,
+            message: `Nothing receives “${name}”. Use get-variable with that name, or this write goes nowhere useful.`,
           });
         }
         if (matchingSends(workspace, name).length > 1) {

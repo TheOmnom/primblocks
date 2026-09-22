@@ -6,19 +6,49 @@ import { routeCable, unionRect, type Rect } from "./wire-route";
 
 const STROKE: Record<string, string> = {
   Integer: CAT.variable,
+  integer: CAT.variable,
   Boolean: CAT.variable,
+  boolean: CAT.variable,
   Number: CAT.operator,
+  float: CAT.operator,
   String: CAT.chat,
+  string: CAT.chat,
   Key: CAT.world,
+  key: CAT.world,
   Vector: CAT.motion,
+  vector: CAT.motion,
   Rotation: CAT.motion,
+  rotation: CAT.motion,
   List: CAT.list,
+  list: CAT.list,
 };
 
 function strokeFor(block: Blockly.Block): string {
   const check = block.getInput("VALUE")?.connection?.targetBlock()?.outputConnection?.getCheck();
   const first = Array.isArray(check) ? check[0] : check;
   return STROKE[first || ""] || CAT.chat;
+}
+
+function varField(block: Blockly.Block): Blockly.FieldVariable | null {
+  const field = block.getField("VAR");
+  if (field && "getVariable" in field) return field as Blockly.FieldVariable;
+  return null;
+}
+
+function varKey(block: Blockly.Block): string {
+  const v = varField(block)?.getVariable?.();
+  if (v) return v.getId();
+  const raw = block.getFieldValue("VAR");
+  if (raw && typeof raw === "object" && raw !== null && "id" in raw) {
+    return String((raw as { id: string }).id);
+  }
+  return String(raw ?? "");
+}
+
+function strokeForVar(block: Blockly.Block): string {
+  const v = varField(block)?.getVariable?.();
+  const t = v && "getType" in v && typeof v.getType === "function" ? v.getType() : "";
+  return STROKE[t] || CAT.variable;
 }
 
 function anchor(block: Blockly.BlockSvg, side: "in" | "out"): { x: number; y: number } | null {
@@ -111,21 +141,48 @@ export function redrawWires(workspace: WorkspaceSvg) {
   while (layer.firstChild) layer.removeChild(layer.firstChild);
 
   const seen = new Set<string>();
+  const link = (
+    fromBlock: Blockly.Block,
+    toBlock: Blockly.Block,
+    color: string,
+    sideFrom: "in" | "out" = "out",
+    sideTo: "in" | "out" = "in",
+  ) => {
+    if (containsBlock(fromBlock, toBlock) || containsBlock(toBlock, fromBlock)) return;
+    const from = anchor(fromBlock as Blockly.BlockSvg, sideFrom);
+    const to = anchor(toBlock as Blockly.BlockSvg, sideTo);
+    if (!from || !to) return;
+    const key = `${fromBlock.id}->${toBlock.id}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    const route = routeCable(from, to, obstaclesFor(workspace, fromBlock, toBlock));
+    if (route.d) addPath(layer, route.d, color);
+  };
+
   for (const send of workspace.getAllBlocks(false)) {
     if (send.type !== "lsl_cable_send" || send.isShadow?.() || send.isInsertionMarker?.()) continue;
     const name = cableNameOf(send);
     if (!name) continue;
-    const from = anchor(send as Blockly.BlockSvg, "out");
-    if (!from) continue;
     const color = strokeFor(send);
     for (const recv of matchingRecvs(workspace, name)) {
-      const to = anchor(recv as Blockly.BlockSvg, "in");
-      if (!to) continue;
-      const key = `${send.id}->${recv.id}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      const route = routeCable(from, to, obstaclesFor(workspace, send, recv));
-      if (route.d) addPath(layer, route.d, color);
+      link(send, recv, color);
+    }
+  }
+
+  const writes: Blockly.Block[] = [];
+  const reads: Blockly.Block[] = [];
+  for (const b of workspace.getAllBlocks(false)) {
+    if (b.isShadow?.() || b.isInsertionMarker?.()) continue;
+    if (b.type === "lsl_set_var" || b.type === "lsl_change_var" || b.type === "lsl_nc_assign") writes.push(b);
+    if (b.type === "lsl_get_var") reads.push(b);
+  }
+  for (const write of writes) {
+    const key = varKey(write);
+    if (!key) continue;
+    const color = strokeForVar(write);
+    for (const read of reads) {
+      if (varKey(read) !== key) continue;
+      link(write, read, color);
     }
   }
 }

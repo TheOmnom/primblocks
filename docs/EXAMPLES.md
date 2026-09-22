@@ -93,30 +93,30 @@ Check:
 Two groups under `touch_start`. `detect` sends `llDetectedName(0)` along `who`. `greet` says `along who`. Expect:
 
 ```lsl
-string cbl_who = "";
+string who = "";
 …
-cbl_who = llDetectedName(0);
-llSay(0, cbl_who);
+who = llDetectedName(0);
+llSay(0, who);
 ```
 
-A noodle is drawn between matching names.
+A noodle is drawn between set and get of the same name.
 
 ## 9. Wired sensor
 
-Same cable, in a `sensor` hat, armed with `llSensorRepeat`.
+Same data link, in a `sensor` hat, armed with `llSensorRepeat`.
 
 ## 10. Wired name + key
 
-Expert. Two noodles. `detect` sends `who` = `llDetectedName(0)` and `id` = `llDetectedKey(0)`. `greet` says the name and `llRegionSayTo`s the key.
+Expert. Two noodles. `detect` writes `who` = `llDetectedName(0)` and `id` = `llDetectedKey(0)`. `greet` says the name and `llRegionSayTo`s the key.
 
 ```lsl
-string cbl_who = "";
-key cbl_id = NULL_KEY;
+string who = "";
+key id = NULL_KEY;
 …
-cbl_who = llDetectedName(0);
-cbl_id = llDetectedKey(0);
-llSay(0, cbl_who);
-llRegionSayTo(cbl_id, 0, "private hello");
+who = llDetectedName(0);
+id = llDetectedKey(0);
+llSay(0, who);
+llRegionSayTo(id, 0, "private hello");
 ```
 
 Reusing `who` for the key is the usual mistake — types fight, noodle lies.

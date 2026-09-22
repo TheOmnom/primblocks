@@ -588,7 +588,7 @@ export function BlockEditor() {
               title is File — New, Open, Save, Save As, Import LSL. New here? Open{" "}
               <strong>Tutorials</strong> — it will not let you skip a brick.{" "}
               <strong>Tips</strong> in the header puts a bubble on each brick you drop.
-              Cables (toolbox) draw a noodle between matching send/receive names.
+              Set a variable in one place and get it in another — the noodle draws itself.
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[60vh] space-y-3 overflow-auto text-sm text-pretty">

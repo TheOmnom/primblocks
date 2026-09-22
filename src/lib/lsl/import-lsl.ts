@@ -236,11 +236,15 @@ function doInput(blocks: BlockJson[]): Record<string, unknown> | undefined {
 
 function skipVarName(name: string): boolean {
   return (
-    name.startsWith("cbl_") ||
     name.startsWith("_i") ||
     name.startsWith("_nc_") ||
     /^nc_(name|line|query|ready)_/.test(name)
   );
+}
+
+function fromCableName(name: string): string | null {
+  if (!name.startsWith("cbl_")) return null;
+  return name.slice(4) || "wire";
 }
 
 function ensureVar(ctx: Ctx, name: string, type: string): VarInfo {
@@ -556,7 +560,11 @@ function identToBlock(name: string, ctx: Ctx): BlockJson {
   const ready = /^nc_ready_(.+)$/.exec(name);
   if (ready) return { type: "lsl_nc_ready", fields: { NAME: ready[1] } };
   if (/^nc_line_/.test(name)) return { type: "lsl_nc_index" };
-  if (name.startsWith("cbl_")) return { type: "lsl_cable_recv", fields: { CABLE: name.slice(4) || "wire" } };
+  const cable = fromCableName(name);
+  if (cable) {
+    const v = ctx.vars.get(cable) ?? ensureVar(ctx, cable, "string");
+    return { type: "lsl_get_var", fields: { VAR: varField(v) } };
+  }
   if (ctx.eventParams.has(name)) return { type: "lsl_param", fields: { NAME: name } };
   if (ctx.vars.has(name)) {
     const v = ctx.vars.get(name)!;
@@ -767,21 +775,28 @@ function stmtToBlock(s: Stmt, ctx: Ctx): BlockJson | null {
         fields: { CODE: `for (${s.init ? "?" : ""}; ${s.cond ? exprToLsl(s.cond) : ""}; ) { … }` },
       };
     }
-    case "decl":
-      return { type: "lsl_raw_stmt", fields: { CODE: `${s.type} ${s.name}${s.init ? ` = ${exprToLsl(s.init)}` : ""};` } };
-    case "assign": {
-      if (s.name.startsWith("cbl_")) {
-        return {
-          type: "lsl_cable_send",
-          fields: { CABLE: s.name.slice(4) || "wire" },
-          inputs: { VALUE: { block: exprToBlock(s.expr, ctx) } },
-        };
+    case "decl": {
+      const cable = fromCableName(s.name);
+      const vname = cable ?? s.name;
+      if (!cable && skipVarName(s.name)) {
+        return { type: "lsl_raw_stmt", fields: { CODE: `${s.type} ${s.name}${s.init ? ` = ${exprToLsl(s.init)}` : ""};` } };
       }
+      const v = ctx.vars.get(vname) ?? ensureVar(ctx, vname, s.type === "quaternion" ? "rotation" : s.type);
+      if (!s.init) return null;
+      return {
+        type: "lsl_set_var",
+        fields: { VAR: varField(v) },
+        inputs: { VALUE: { block: exprToBlock(s.init, ctx) } },
+      };
+    }
+    case "assign": {
+      const cable = fromCableName(s.name);
+      const vname = cable ?? s.name;
       if (isNcAssign(s.name, s.expr)) {
-        const v = ctx.vars.get(s.name) ?? ensureVar(ctx, s.name, inferType(s.expr));
+        const v = ctx.vars.get(vname) ?? ensureVar(ctx, vname, inferType(s.expr));
         return { type: "lsl_nc_assign", fields: { VAR: varField(v) } };
       }
-      const v = ctx.vars.get(s.name) ?? ensureVar(ctx, s.name, inferType(s.expr));
+      const v = ctx.vars.get(vname) ?? ensureVar(ctx, vname, inferType(s.expr));
       return { type: "lsl_set_var", fields: { VAR: varField(v) }, inputs: { VALUE: { block: exprToBlock(s.expr, ctx) } } };
     }
     case "addassign": {
@@ -823,7 +838,8 @@ function astToState(ast: ScriptAst): ImportResult {
   for (const g of ast.globals) {
     if (skipVarName(g.name)) continue;
     const type = g.type === "quaternion" ? "rotation" : g.type;
-    ensureVar(ctx, g.name, type);
+    const cable = fromCableName(g.name);
+    ensureVar(ctx, cable ?? g.name, type);
   }
 
   const tops: BlockJson[] = [];
